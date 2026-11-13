@@ -1,10 +1,11 @@
 from fastapi import FastAPI
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 
-from workhub_api.config import settings
+from workhub_api.db import engine
+from workhub_api.timesheets import router as timesheets_router
 
 app = FastAPI(title="WorkHub API")
-engine = create_engine(settings.database_url, pool_pre_ping=True)
+app.include_router(timesheets_router)
 
 
 @app.get("/health")

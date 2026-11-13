@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     postgres_db: str = "workhub"
     postgres_sslmode: str = "prefer"  # Azure needs "require"
 
+    # Temporary until Entra sign-in (WH-04): accept an X-User-Id header. Must be off in production.
+    dev_auth: bool = False
+
     @property
     def database_url(self) -> URL:
         # URL.create escapes special characters in the password.

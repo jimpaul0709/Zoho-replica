@@ -13,6 +13,18 @@ uv run alembic upgrade head                    # create/update the tables (see d
 uv run uvicorn workhub_api.main:app --reload   # http://localhost:8000/health
 ```
 
+## Time API (WH-20)
+
+Sign-in is not built yet. Set `DEV_AUTH=true` in `.env`, then send `X-User-Id: <app_user id>` on each call.
+Interactive docs at http://localhost:8000/docs.
+
+| Call | What it does |
+|---|---|
+| `GET /time/week?on=YYYY-MM-DD` | The week's entries, status and per-day minutes |
+| `POST /time/entries` | Add an entry (one task or one charge code) |
+| `PATCH /time/entries/{id}`, `DELETE /time/entries/{id}` | Change or remove an entry (draft weeks only) |
+| `POST /time/weeks/{week_start}/submit` | Submit the week and create the approval for the manager |
+
 ## Check before pushing
 
 ```bash

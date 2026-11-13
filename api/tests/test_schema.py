@@ -7,7 +7,7 @@ from sqlalchemy import text
 from sqlalchemy.engine import Connection
 from sqlalchemy.exc import DBAPIError, IntegrityError
 
-from workhub_api.main import engine
+from workhub_api.db import engine
 
 
 @pytest.fixture

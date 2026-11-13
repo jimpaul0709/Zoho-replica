@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from workhub_api.audit import record, snapshot
-from workhub_api.main import engine
+from workhub_api.db import engine
 from workhub_api.models import AuditEvent, TimesheetWeek, User
 
 
