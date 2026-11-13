@@ -52,7 +52,7 @@ Run it: see `api/README.md`.
 | now | Push so CI runs once |
 | 16–20 Nov | **WH-03** schema is drafted and migrated; remaining: review with the team, then audit-event helper (write one row on every change) |
 | 23–27 Nov | **WH-20** time API: entries, week, rules, submit and lock |
-| 27 Nov–1 Dec | **WH-30** approval engine v1: route, approve, send back with a reason, history |
+| 27 Nov–1 Dec | **WH-30** approval engine v1: built for weeks (inbox, approve and lock, send back with a reason, history); leave and edit requests plug in later |
 | 2–10 Dec | WH-07 job worker, WH-32 delegation and escalation, WH-33 inbox depth |
 | 14–18 Dec | WH-90 seed data and four end-to-end journeys, WH-91 security sweep |
 | 21–23 Dec | WH-94 buffer, release checks, basic load test |

@@ -17,6 +17,7 @@ from workhub_api.audit import record, snapshot
 from workhub_api.db import CurrentUser, SessionDep
 from workhub_api.models import (
     Approval,
+    ApprovalStep,
     ChargeCode,
     ChargeCodeTeam,
     OrgSettings,
@@ -251,6 +252,7 @@ def submit_week(week_start: date, session: SessionDep, user: CurrentUser) -> Wee
     )
     session.add(approval)
     session.flush()
+    session.add(ApprovalStep(approval_id=approval.id, actor_id=user.id, action="submitted"))
     _audit(session, user, "timesheet_week", week, "submitted", before)
     _audit(session, user, "approval", approval, "created", None)
     session.commit()

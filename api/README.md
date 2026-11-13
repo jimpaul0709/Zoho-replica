@@ -25,6 +25,17 @@ Interactive docs at http://localhost:8000/docs.
 | `PATCH /time/entries/{id}`, `DELETE /time/entries/{id}` | Change or remove an entry (draft weeks only) |
 | `POST /time/weeks/{week_start}/submit` | Submit the week and create the approval for the manager |
 
+## Approvals (WH-30)
+
+| Call | What it does |
+|---|---|
+| `GET /approvals/inbox` | Pending approvals assigned to you (who, which week, total minutes) |
+| `POST /approvals/{id}/approve` | Approve; the week becomes `approved` and is locked |
+| `POST /approvals/{id}/send-back` | Send back with a `reason` (and optional `entry_ids` to pin it on); the week returns to `draft` |
+| `GET /approvals/{id}/history` | The steps: submitted, approved or sent back, who and when |
+
+Only weeks are supported so far. Delegation and escalation come with WH-32.
+
 ## Check before pushing
 
 ```bash

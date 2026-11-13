@@ -1,11 +1,13 @@
 from fastapi import FastAPI
 from sqlalchemy import text
 
+from workhub_api.approvals import router as approvals_router
 from workhub_api.db import engine
 from workhub_api.timesheets import router as timesheets_router
 
 app = FastAPI(title="WorkHub API")
 app.include_router(timesheets_router)
+app.include_router(approvals_router)
 
 
 @app.get("/health")
