@@ -92,6 +92,8 @@ def _find_week(session: Session, user: User, start: date) -> TimesheetWeek | Non
 
 def _editable_week(session: Session, user: User, day: date) -> TimesheetWeek:
     """The user's week for `day` (created as draft if new); 409 unless it is still a draft."""
+    # One writer per user at a time until commit: stops two requests both passing the 24 h check.
+    session.execute(select(func.pg_advisory_xact_lock(user.id)))
     start = week_start_for(session, day)
     week = _find_week(session, user, start)
     if week is None:

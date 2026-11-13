@@ -2,6 +2,8 @@
 
 Source: `documentation/docs/superpowers/specs/2026-11-12-workhub-design.md` section 5. Renders on GitHub.
 
+Note: the user table is named `app_user` in the database because `user` is reserved in Postgres.
+
 Conventions (apply to every table): `id` primary key, `created_at` and `updated_at` timestamps. Time is stored as **integer minutes**, dates as `date`. PK = primary key, FK = foreign key, UK = unique.
 
 ## Migration plan
@@ -38,7 +40,7 @@ erDiagram
     bool client_portal_enabled "default false"
   }
   LOCATION ||--o{ HOLIDAY : has
-  LOCATION ||--o{ USER : works_at
+  LOCATION ||--o{ APP_USER : works_at
   LOCATION {
     int id PK
     string name
@@ -49,11 +51,11 @@ erDiagram
     date on_date
     string name
   }
-  USER ||--o{ ROLE_ASSIGNMENT : holds
-  USER ||--o{ USER : manages
-  USER ||--o{ TEAM_MEMBER : joins
+  APP_USER ||--o{ ROLE_ASSIGNMENT : holds
+  APP_USER ||--o{ APP_USER : manages
+  APP_USER ||--o{ TEAM_MEMBER : joins
   TEAM ||--o{ TEAM_MEMBER : has
-  USER {
+  APP_USER {
     int id PK
     string employee_code UK
     string name
@@ -96,7 +98,7 @@ erDiagram
   PROJECT ||--o{ PROJECT_TEAM : has
   PROJECT ||--o{ TASK_LIST : has
   PROJECT ||--o{ TASK_STATUS : defines
-  USER ||--o{ PROJECT_MEMBER : joins
+  APP_USER ||--o{ PROJECT_MEMBER : joins
   TEAM ||--o{ PROJECT_TEAM : joins
   PROJECT {
     int id PK
@@ -171,7 +173,7 @@ erDiagram
 
 ```mermaid
 erDiagram
-  USER ||--o{ TIMESHEET_WEEK : owns
+  APP_USER ||--o{ TIMESHEET_WEEK : owns
   TIMESHEET_WEEK ||--o{ TIME_ENTRY : contains
   TASK ||--o{ TIME_ENTRY : logged_on
   CHARGE_CODE ||--o{ TIME_ENTRY : logged_on
@@ -195,10 +197,10 @@ erDiagram
     string source "manual timer calendar git leave holiday"
     text sent_back_reason
   }
-  USER ||--o{ APPROVAL : requests
-  USER ||--o{ APPROVAL : approves
+  APP_USER ||--o{ APPROVAL : requests
+  APP_USER ||--o{ APPROVAL : approves
   APPROVAL ||--o{ APPROVAL_STEP : records
-  USER ||--o{ APPROVAL_STEP : acts
+  APP_USER ||--o{ APPROVAL_STEP : acts
   APPROVAL {
     int id PK
     string subject_type "week leave comp_off edit_request"
@@ -218,8 +220,8 @@ erDiagram
     text comment
     datetime at
   }
-  USER ||--o{ DELEGATION : hands_over
-  USER ||--o{ DELEGATION : receives
+  APP_USER ||--o{ DELEGATION : hands_over
+  APP_USER ||--o{ DELEGATION : receives
   DELEGATION {
     int id PK
     int from_user_id FK
@@ -227,7 +229,7 @@ erDiagram
     date starts_on
     date ends_on
   }
-  USER ||--o{ AUDIT_EVENT : acts
+  APP_USER ||--o{ AUDIT_EVENT : acts
   AUDIT_EVENT {
     int id PK
     int actor_id FK
@@ -253,11 +255,11 @@ erDiagram
 
 ```mermaid
 erDiagram
-  USER ||--o{ LEAVE_BALANCE : has
+  APP_USER ||--o{ LEAVE_BALANCE : has
   LEAVE_TYPE ||--o{ LEAVE_BALANCE : of_type
-  USER ||--o{ LEAVE_REQUEST : applies
+  APP_USER ||--o{ LEAVE_REQUEST : applies
   LEAVE_TYPE ||--o{ LEAVE_REQUEST : of_type
-  USER ||--o{ COMP_OFF_REQUEST : earns
+  APP_USER ||--o{ COMP_OFF_REQUEST : earns
   LEAVE_TYPE {
     int id PK
     string name
@@ -303,8 +305,8 @@ erDiagram
     text note
   }
   PAYSLIP_BATCH ||--o{ PAYSLIP : contains
-  USER ||--o{ PAYSLIP : receives
-  USER ||--o{ DOCUMENT : owns
+  APP_USER ||--o{ PAYSLIP : receives
+  APP_USER ||--o{ DOCUMENT : owns
   PAYSLIP_BATCH {
     int id PK
     string month
@@ -325,8 +327,8 @@ erDiagram
     string file_key
     int year
   }
-  USER ||--o{ NOTIFICATION : gets
-  USER ||--o{ NOTIFICATION_PREF : sets
+  APP_USER ||--o{ NOTIFICATION : gets
+  APP_USER ||--o{ NOTIFICATION_PREF : sets
   NOTIFICATION {
     int id PK
     int user_id FK
