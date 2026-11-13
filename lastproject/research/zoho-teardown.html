@@ -1,0 +1,249 @@
+<title>Zoho Workspace Teardown</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* Layout: one reading column (~70ch) with full-width evidence grids; audit-ledger feel, IDs in mono */
+:root{
+  --bg:#f6f7f9; --surface:#ffffff; --fg:#17202e; --muted:#5b6678; --line:#dde2ea;
+  --accent:#2747c9; --accent-soft:#e6ebfb;
+  --ok:#1d7a4f; --ok-soft:#e3f3ea; --warn:#a15c00; --warn-soft:#fbefdc; --bad:#b4232c; --bad-soft:#fbe5e6;
+  --display:"Space Grotesk",ui-sans-serif,system-ui,sans-serif;
+  --body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f141c; --surface:#161d28; --fg:#e4e9f1; --muted:#97a3b6; --line:#273244;
+  --accent:#8fa6ff; --accent-soft:#1d2744;
+  --ok:#5fd09a; --ok-soft:#14301f; --warn:#f0b35a; --warn-soft:#352612; --bad:#ff7b84; --bad-soft:#3a1a1d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141c; --surface:#161d28; --fg:#e4e9f1; --muted:#97a3b6; --line:#273244;
+  --accent:#8fa6ff; --accent-soft:#1d2744;
+  --ok:#5fd09a; --ok-soft:#14301f; --warn:#f0b35a; --warn-soft:#352612; --bad:#ff7b84; --bad-soft:#3a1a1d; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:15px/1.6 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1080px;margin:0 auto;padding-block:40px 80px;display:grid;gap:56px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.2;margin:0}
+h1{font-size:clamp(28px,4.5vw,42px);letter-spacing:-.01em}
+h2{font-size:24px}
+h3{font-size:16px}
+p{margin:0;max-width:70ch}
+.eyebrow{font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+section{display:grid;gap:18px}
+header{display:grid;gap:14px}
+.lede{font-size:17px;color:var(--muted);max-width:70ch}
+.meta{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 12px/1 var(--mono);padding:6px 9px;border-radius:4px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+code,.id{font-family:var(--mono);font-size:.9em}
+.findings{list-style:none;margin:0;padding:0;display:grid;gap:12px;counter-reset:f}
+.findings li{display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px 16px;counter-increment:f}
+.findings li::before{content:counter(f);font:600 14px/26px var(--mono);text-align:center;border-radius:4px;background:var(--accent-soft);color:var(--accent)}
+.findings b{display:block;margin-bottom:2px}
+.tablebox{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line)}
+th{font:500 12px/1.3 var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--bg)}
+tr:last-child td{border-bottom:0}
+td.num{font-variant-numeric:tabular-nums;font-family:var(--mono)}
+.tag{display:inline-block;font:500 11px/1 var(--mono);padding:4px 6px;border-radius:3px;white-space:nowrap}
+.t-ok{background:var(--ok-soft);color:var(--ok)}.t-warn{background:var(--warn-soft);color:var(--warn)}.t-bad{background:var(--bad-soft);color:var(--bad)}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:16px}
+figure{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:6px;overflow:hidden;display:grid;grid-template-rows:auto 1fr}
+figure button{all:unset;cursor:zoom-in;display:block;background:var(--bg);border-bottom:1px solid var(--line)}
+figure button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+figure img{display:block;width:100%;max-width:100%;aspect-ratio:1536/639;object-fit:cover;object-position:top left}
+figcaption{padding:10px 12px;font-size:13.5px;display:grid;gap:6px;align-content:start}
+figcaption .tag{justify-self:start}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px;display:grid;gap:8px;align-content:start;min-width:0}
+.card ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.note{font-size:13.5px;color:var(--muted)}
+a{color:var(--accent);text-underline-offset:2px}
+.src{display:grid;gap:3px;font-size:12.5px;line-height:1.35}
+.src b{font:600 13px var(--mono)}
+.sugg{display:inline-block;font:500 11px/1 var(--mono);padding:3px 5px;border-radius:3px;background:var(--accent-soft);color:var(--accent);margin-right:4px}
+dialog{border:0;padding:0;background:transparent;max-width:min(96vw,1600px)}
+dialog::backdrop{background:rgb(0 0 0 / .75)}
+dialog img{display:block;max-width:100%;max-height:88vh;border-radius:4px}
+dialog p{color:#fff;margin-top:8px;font-size:14px}
+@media (prefers-reduced-motion:no-preference){figure button img{transition:opacity .15s}figure button:hover img{opacity:.88}}
+</style>
+
+<div class="wrap">
+<header>
+  <span class="eyebrow">Research · 12 Nov 2026 · read-only</span>
+  <h1>What we actually use in Zoho, and what a replacement must not miss</h1>
+  <p class="lede">A walkthrough of Ampera's live Zoho Projects, People and Payroll portals, our Projects data pulled read-only through the API, Zoho's pricing pages, and about 90 community and review sources. The goal is to check the baseline idea (RBAC, projects, members, timesheets, leave, payslips) and list the small things it leaves out.</p>
+  <div class="meta">
+    <span class="chip">Projects: Enterprise plan</span><span class="chip">16 projects</span><span class="chip">viewed as: Employee profile</span><span class="chip">30 screenshots</span><span class="chip">~90 sources</span>
+  </div>
+</header>
+
+<section>
+  <span class="eyebrow">Headline findings</span>
+  <ol class="findings">
+    <li><div><b>Zoho Projects is used as a timesheet charge-code system.</b>Every project has 0 milestones and 0 issues, and nobody uses dependencies, comments or attachments. What matters is the time logs: billable vs non-billable, approval status, and an <span class="id">ATPL-46 Organizational Tasks</span> project holding 16 standing codes (Bench, Training, Proposal ≈ 1,609 h logged). Client and SOW codes are faked with tags like <span class="id">SOW-11101</span>.</div></li>
+    <li><div><b>The three apps disagree about the same day.</b>On Tue 10 Nov, Projects shows 8 h logged. Zoho People marks the same day "Absent", Attendance says "Present: 0 days", and Leave Summary says "Absent: 0". People also has its own Time Tracker, and it's empty.</div></li>
+    <li><div><b>Approval details exist but are hidden.</b>A leave request's approver, level (1/1) and "Acted in 4 days" appear only behind a <i>View</i> button. The list shows a green tick and nothing else, and a 4-day wait triggered no escalation. In Projects, one approval produced 5 identical notifications with no hours or dates.</div></li>
+    <li><div><b>Notifications are noisy and coarse.</b>99+ unread in Projects. The only setting is on or off per project. There are no per-event choices and no digest.</div></li>
+    <li><div><b>The menu shows things you can't open.</b>Employees see a <i>Timesheets</i> item that leads to "Permission Denied". Home didn't finish loading after more than 11 seconds.</div></li>
+  </ol>
+</section>
+
+<section>
+  <span class="eyebrow">Your idea vs. what it needs</span>
+  <h2>The baseline is right; the gaps are in the details around each step</h2>
+  <div class="tablebox"><table>
+    <thead><tr><th style="width:11%">Area</th><th style="width:14%">Baseline idea</th><th style="width:25%">Where in Zoho (app › tab)</th><th>Small things missing (seen in our portal or raised by users)</th></tr></thead>
+    <tbody>
+      <tr><td><b>RBAC</b></td><td>Roles</td><td><b>Projects</b> › left menu › <i>Timesheets</i> (shows "Permission Denied")<br><b>People</b> › <i>Home</i> (reporting manager)<br><span class="note">Roles / profiles admin screens not visible to Employee</span></td><td>Scope access by reporting line and project membership. Hide what a role can't open. Explain "why can't I see this". Keep to five plain roles (Employee, Manager, HR, Finance, Admin) instead of roles + profiles + permission sets.</td></tr>
+      <tr><td><b>Projects</b></td><td>Create project, add members</td><td><b>Projects</b> › <i>Projects</i> list (keys, status, groups)<br><b>Projects</b> › project › <i>Tasks</i> (tags like SOW-11101)<br><b>Projects</b> › <i>ATPL-46 Organizational Tasks</i> (charge codes)</td><td>Readable keys (<span class="id">ATPL-106</span>, <span class="id">AS1-T4</span>), real client → SOW / work order → project records instead of tags, project groups (practices), status, public/private, standing org-level charge codes, tasks assigned to <i>teams</i>, rich description.</td></tr>
+      <tr><td><b>Timesheet</b></td><td>Fill timesheet</td><td><b>Projects</b> › <i>Time Logs</i> (List / Grid / Calendar; My Pending, Approved, Rejected views) › <i>Add Time Log</i> form<br><b>Projects</b> › task › <i>Log Hours</i> tab + timer<br><b>People</b> › <i>Time Tracker</i> (empty duplicate)</td><td>Week grid with a work week set per org (ours is wrongly set to Sun–Thu). Billable vs non-billable, notes, a "general log" with no task, a timer, no future dates, per-entry approval status, a rejection reason that goes back to the entry, entries locked after approval, approved-by and approved-at, reminders for missing days.</td></tr>
+      <tr><td><b>Leave</b></td><td>Apply leave</td><td><b>People</b> › <i>Leave Tracker</i> › <i>Leave Summary</i> (balances)<br><b>People</b> › <i>Leave Tracker</i> › <i>Leave Requests</i> › <i>View</i> (approval timeline)<br><b>People</b> › <i>Leave Requests</i> › <i>Add Request</i> (form)<br><b>People</b> › <i>Home</i> (holidays, Absent marks), <i>Attendance</i></td><td>Leave types with balances (Comp-off, Earned, LWP, PTO), an April–March leave year, half-day per date, reason plus attachment (e.g. a medical note), approval timeline visible in the list, delegation and escalation SLA, holiday calendar per location, and approved leave filled into timesheet and attendance automatically.</td></tr>
+      <tr><td><b>Payslip</b></td><td>See payslip</td><td><b>Payroll</b> (employee portal) › <i>Home</i> (masked amounts, monthly tabs)<br><b>Payroll</b> › <i>Salary Details</i>, <i>Investments</i>, <i>Documents</i> (Payslips, Form 16)</td><td><b>Seen in the Employee portal:</b> amounts masked by default, monthly payslip tabs, Form 16, an investment-declaration window the admin opens and locks.<br><span class="sugg">Suggestion</span> Not verified, because admin screens were out of reach: PDF download of the full history (also after an employee leaves), proof uploads, salary structure view. Someone with Payroll admin access should confirm these, along with the plan tier and the pay-run screens.</td></tr>
+      <tr><td><b>Cross-cutting</b></td><td>(none)</td><td><b>Projects</b> › bell icon (99+ notifications)<br><b>Projects</b> › bell › gear (notification preferences)<br><b>Projects</b> › task › <i>Activity Stream</i>, <i>Status Timeline</i> tabs<br><b>Projects</b> › <i>Home</i> (slow load)</td><td>One approvals inbox with bulk actions and comments, grouped notifications with a digest and per-event preferences, an activity stream and status timeline on every record, built-in reports (utilization, timesheet compliance, leave, payroll register), fast pages.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <span class="eyebrow">Evidence · Zoho Projects</span>
+  <h2>Timesheets are the product</h2>
+  <div class="gallery">
+    <figure><button type="button" aria-label="Enlarge: project list"><img src="screens/01-projects-list.jpg" alt="Zoho Projects list of 16 projects with keys, status, tasks, phases and issues columns" loading="lazy"></button><figcaption><span class="tag t-ok">Has</span>Project keys, owner, status, % complete. Every row says "No Phases" and "No Issues".</figcaption></figure>
+    <figure><button type="button" aria-label="Enlarge: week grid"><img src="screens/06-timesheet-week-grid.jpg" alt="Weekly time log grid Sunday to Saturday with daily totals and billable split" loading="lazy"></button><figcaption><span class="tag t-ok">Has</span>Sunday–Saturday week grid with day totals and a billable vs non-billable footer. List and Calendar views too.</figcaption></figure>
+    <figure><button type="button" aria-label="Enlarge: new time log form"><img src="screens/10-new-timelog-fields.jpg" alt="New time log form: project, task or issue, date, user, daily hours, billing type" loading="lazy"></button><figcaption><span class="tag t-ok">Has</span>Fields: Project, Task/Issue or General Log, Date, User, Hours or start/end time, Billing type, rich-text Notes.</figcaption></figure>
+    <figure><button type="button" aria-label="Enlarge: future dates blocked"><img src="screens/09-new-timelog-no-future.jpg" alt="Banner: time logging is not allowed for future dates and times" loading="lazy"></button><figcaption><span class="tag t-ok">Rule</span>"Time logging is not allowed for future dates and times."</figcaption></figure>
+    <figure><button type="button" aria-label="Enlarge: task tabs"><img src="screens/13-task-tabs.jpg" alt="Task detail with tabs: comments, subtasks, log hours, documents, dependency, status timeline, issues, activity stream" loading="lazy"></button><figcaption><span class="tag t-ok">Has</span>Task tabs: Comments, Subtasks, Log Hours, Documents, Dependency, Status Timeline, Issues, Activity Stream, plus a timer.</figcaption></figure>
+    <figure><button type="button" aria-label="Enlarge: status timeline"><img src="screens/15-task-status-timeline.jpg" alt="Status timeline showing the task open for 34 days" loading="lazy"></button><figcaption><span class="tag t-ok">Worth copying</span>Status timeline: time spent in each status ("Open for 34 days").</figcaption></figure>
+    <figure><button type="button" aria-label="Enlarge: permission denied"><img src="screens/16-timesheets-permission-denied.jpg" alt="Permission denied page after clicking Timesheets" loading="lazy"></button><figcaption><span class="tag t-bad">Broken</span>The menu shows Timesheets to Employees, then blocks them with "Permission Denied".</figcaption></figure>
+    <figure><button type="button" aria-label="Enlarge: notifications"><img src="screens/17-notifications-flood.jpg" alt="Notification panel with five identical approved-entries notifications" loading="lazy"></button><figcaption><span class="tag t-bad">Noisy</span>5 identical "approved the entries" notifications, none saying which hours. 99+ unread.</figcaption></figure>
+    <figure><button type="button" aria-label="Enlarge: notification preferences"><img src="screens/18-notification-prefs-per-project.jpg" alt="Notification preferences: only an on/off toggle per project" loading="lazy"></button><figcaption><span class="tag t-warn">Thin</span>Notification preferences are an on/off toggle per project, with no event types and no digest.</figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">Evidence · Zoho People</span>
+  <h2>Leave works; the joins between apps don't</h2>
+  <div class="gallery">
+    <figure><button type="button" aria-label="Enlarge: absent vs logged"><img src="screens/19-people-home-absent-vs-logged.jpg" alt="People home showing Tue 10 and Wed 11 as Absent" loading="lazy"></button><figcaption><span class="tag t-bad">Conflict</span>Tue 10 shows "Absent" here, while Projects has 8 h logged for the same day. Also shown: holidays, shift, reporting manager.</figcaption></figure>
+    <figure><button type="button" aria-label="Enlarge: leave summary"><img src="screens/20-leave-summary.jpg" alt="Leave summary cards for comp off, earned leave, leave without pay, paid time off" loading="lazy"></button><figcaption><span class="tag t-ok">Has</span>Balances by type and an April–March leave year. It also says "Absent: 0", which contradicts Home.</figcaption></figure>
+    <figure><button type="button" aria-label="Enlarge: leave list"><img src="screens/21-leave-requests-list.jpg" alt="Leave requests list with status tick, type, period, days and request date" loading="lazy"></button><figcaption><span class="tag t-warn">Gap</span>The list has no approved-by or approved-on column, only a tick. Leave can be applied after the dates.</figcaption></figure>
+    <figure><button type="button" aria-label="Enlarge: approval timeline"><img src="screens/24-leave-approval-timeline.jpg" alt="Approval timeline: submitted, approved after 4 days, level 1 of 1" loading="lazy"></button><figcaption><span class="tag t-ok">Worth copying</span>Approval timeline: who approved, which level, "Acted in 4 days". Bring it to the front of the list.</figcaption></figure>
+    <figure><button type="button" aria-label="Enlarge: apply leave form"><img src="screens/25-apply-leave-form.jpg" alt="Apply leave form: type, dates, team email, reason" loading="lazy"></button><figcaption><span class="tag t-warn">Thin</span>Form: type, from/to, team email, optional reason. No attachment field. Half-day is set per date after choosing.</figcaption></figure>
+    <figure><button type="button" aria-label="Enlarge: empty time tracker"><img src="screens/27-people-timetracker-empty.jpg" alt="People time tracker showing zero hours for the week" loading="lazy"></button><figcaption><span class="tag t-bad">Duplicate</span>People's own Time Tracker shows 0 h for the week Projects has 8 h. Two time systems, no sync.</figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">Evidence · Zoho Payroll (employee portal)</span>
+  <h2>Small, self-service, mostly documents</h2>
+  <div class="gallery">
+    <figure><button type="button" aria-label="Enlarge: payroll home"><img src="screens/28-payroll-home-masked.jpg" alt="Payroll home with masked take-home, deductions and gross pay" loading="lazy"></button><figcaption><span class="tag t-ok">Worth copying</span>Amounts masked by default. Monthly payslip tabs. Sections: Salary Details, Benefits, Investments, Documents.</figcaption></figure>
+    <figure><button type="button" aria-label="Enlarge: investments locked"><img src="screens/29-payroll-investments-locked.jpg" alt="Investment declaration locked until admin opens it" loading="lazy"></button><figcaption><span class="tag t-ok">Has</span>Investment declaration with an admin-controlled window, plus proof of investments, per financial year.</figcaption></figure>
+    <figure><button type="button" aria-label="Enlarge: documents"><img src="screens/30-payroll-documents.jpg" alt="Payroll documents: payslips and Form 16" loading="lazy"></button><figcaption><span class="tag t-ok">Has</span>Documents: Payslips and Form 16.</figcaption></figure>
+  </div>
+  <p class="note">No salary figures were unmasked or captured.</p>
+</section>
+
+<section>
+  <span class="eyebrow">Pricing</span>
+  <h2>What we pay for, and what sits behind higher tiers</h2>
+  <div class="tablebox"><table>
+    <thead><tr><th>Product</th><th>Plans (INR per user / month, monthly · annual)</th><th>Ampera</th><th>Zoho pricing pages</th></tr></thead>
+    <tbody>
+      <tr><td><b>Projects</b></td><td class="num">Free (5 users, 3 projects) · Premium ₹350 · ₹280 · Enterprise ₹700 · ₹630 · Ultimate ₹1,050 · ₹980</td><td><span class="tag t-ok">Enterprise</span> (Projects + Bug Tracker)</td><td class="src"><a href="https://www.zoho.com/projects/zohoprojects-pricing.html" target="_blank" rel="noopener">Pricing</a><a href="https://www.zoho.com/projects/pricing-comparison.html" target="_blank" rel="noopener">Plan comparison</a></td></tr>
+      <tr><td><b>People</b></td><td class="num">Free (5) · Essential HR ₹60 · ₹48 · Professional ₹120 · ₹96 · Premium ₹180 · ₹144 · Enterprise ₹240 · ₹192 · min 5 users</td><td><span class="tag t-warn">Unknown</span> attendance + time tracker in use, so Professional or higher</td><td class="src"><a href="https://www.zoho.com/people/zohopeople-pricing.html" target="_blank" rel="noopener">Pricing</a><a href="https://www.zoho.com/people/pricing-comparison.html" target="_blank" rel="noopener">Plan comparison</a></td></tr>
+      <tr><td><b>Payroll</b> (per org)</td><td class="num">Free ≤10 employees · Standard ₹1,250 · ₹1,000 · Professional ₹3,750 · ₹3,000 · Premium ₹5,000 · ₹4,000, plus a per-employee fee above the included count</td><td><span class="tag t-warn">Unknown</span> not visible to Employee profile</td><td class="src"><a href="https://www.zoho.com/in/payroll/pricing/" target="_blank" rel="noopener">Pricing (India)</a><a href="https://www.zoho.com/in/payroll/pricing-comparison/" target="_blank" rel="noopener">Plan comparison</a></td></tr>
+      <tr><td><b>Bundles</b></td><td>Zoho One, People Plus</td><td>none</td><td class="src"><a href="https://www.zoho.com/one/pricing/" target="_blank" rel="noopener">Zoho One</a><a href="https://www.zoho.com/peopleplus/pricing.html" target="_blank" rel="noopener">People Plus</a></td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Zoho's pages load prices with JavaScript and show local currency. The INR figures come from Zoho's own pricing data files; see <span class="id">research/pricing.md</span>.</p>
+  <div class="cols">
+    <div class="card"><h3>Gated features to know about</h3><ul>
+      <li>Projects: multi-user / multi-project timesheets are <b>Ultimate</b> only.</li>
+      <li>Projects: custom fields and custom roles need <b>Enterprise</b>.</li>
+      <li>Projects: client users are a paid add-on on every plan.</li>
+      <li>People: attendance and timesheets start at <b>Professional</b>.</li>
+      <li>Payroll India: leave and attendance plus workflow rules are <b>Premium</b> only. No audit trail on Free.</li>
+    </ul></div>
+    <div class="card"><h3>Bundles</h3><ul>
+      <li>Zoho One costs about 3x the standalone stack for these three apps (₹31,250 vs ₹10,400 per month at 25 users).</li>
+      <li>People Plus bundles People + Payroll but not Projects.</li>
+      <li>Zoho raised People Plus prices in July 2026 (Premium $4 → $8).</li>
+    </ul></div>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">What users complain about</span>
+  <h2>Top pain points across forums and review sites</h2>
+  <div class="tablebox"><table>
+    <thead><tr><th>#</th><th>Pain point</th><th>Who feels it</th><th>Sources</th><th>Seen in our portal</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td>Mobile apps lag the web (timers, check-in, missing features)</td><td>Employee, Manager</td><td class="src"><b>11</b><a href="https://help.zoho.com/portal/en/community/topic/cant-stop-time-tracker-on-zoho-project-mobile" target="_blank" rel="noopener">Forum: can't stop timer on mobile</a><a href="https://play.google.com/store/apps/details?id=com.zoho.people" target="_blank" rel="noopener">Play Store: Zoho People reviews</a></td><td>out of scope (no mobile)</td></tr>
+      <tr><td class="num">2</td><td>Cluttered UI, steep learning curve</td><td>All</td><td class="src"><b>10</b><a href="https://www.softwaresuggest.com/zoho-projects/reviews" target="_blank" rel="noopener">SoftwareSuggest: Projects reviews</a><a href="https://help.zoho.com/portal/ja/community/topic/zoho-project-for-crm-is-clumsy-and-not-intuitive?page=2" target="_blank" rel="noopener">Forum: clumsy, not intuitive</a></td><td><span class="tag t-bad">yes</span></td></tr>
+      <tr><td class="num">3</td><td>Zoho apps don't sync (People ↔ Projects time, Payroll ignores People leave)</td><td>Finance, HR, Manager</td><td class="src"><b>10</b><a href="https://help.zoho.com/portal/en/community/topic/zoho-people-timesheet-sync-to-zoho-projects" target="_blank" rel="noopener">Forum: People ↔ Projects timesheet sync</a><a href="https://www.zoho.com/in/payroll/help/employer/integrations/integrations-people.html" target="_blank" rel="noopener">Zoho docs: Payroll ↔ People</a></td><td><span class="tag t-bad">yes</span> Absent vs 8 h</td></tr>
+      <tr><td class="num">4</td><td>Price creep and features locked to top tiers</td><td>Finance</td><td class="src"><b>9</b><a href="https://pricingsaas.com/companies/zoho.peopleplus/diffs/2026W29" target="_blank" rel="noopener">PricingSaaS: People Plus price change</a><a href="https://help.zoho.com/portal/en/community/topic/so-the-basic-plan-is-being-phased-out" target="_blank" rel="noopener">Forum: Basic plan phased out</a></td><td>Enterprise plan, Ultimate gates</td></tr>
+      <tr><td class="num">5</td><td>Slow or unhelpful support</td><td>Finance, HR</td><td class="src"><b>8</b><a href="https://help.zoho.com/portal/en/community/topic/whats-going-on-with-zoho-support" target="_blank" rel="noopener">Forum: what's going on with support</a><a href="https://help.zoho.com/portal/ja/community/topic/no-zoho-support-response-in-months?page=1" target="_blank" rel="noopener">Forum: no response in months</a></td><td>not tested</td></tr>
+      <tr><td class="num">6</td><td>Notifications: floods in Projects, silent gaps in leave and timesheets</td><td>Manager, Employee</td><td class="src"><b>8</b><a href="https://help.zoho.com/portal/en/community/topic/absolutely-need-to-turn-off-auto-email-notifications" target="_blank" rel="noopener">Forum: turn off auto emails</a><a href="https://help.zoho.com/portal/en/community/topic/leave-approval-send-confirmation-emails-to-requester-and-additional-users?page=7" target="_blank" rel="noopener">Forum: leave approval emails</a></td><td><span class="tag t-bad">yes</span> 99+, duplicates</td></tr>
+      <tr><td class="num">7</td><td>Shallow reports; custom ones need Zoho Analytics</td><td>Manager, HR, Finance</td><td class="src"><b>7</b><a href="https://help.zoho.com/portal/en/community/topic/limitation-of-reports-on-zoho-projects-integration" target="_blank" rel="noopener">Forum: report limitations</a><a href="https://help.zoho.com/portal/en/community/topic/why-is-zoho-analytics-so-damn-hard-to-set-up" target="_blank" rel="noopener">Forum: Analytics hard to set up</a></td><td>not tested</td></tr>
+      <tr><td class="num">8</td><td>Slow pages and hangs</td><td>All</td><td class="src"><b>6</b><a href="https://help.zoho.com/portal/en/community/topic/projects-extremely-slow-and-unresponsive" target="_blank" rel="noopener">Forum: Projects extremely slow</a><a href="https://help.zoho.com/portal/en/community/topic/zoho-s-biggest-issue-is-unaddressed-slowness" target="_blank" rel="noopener">Forum: unaddressed slowness</a></td><td><span class="tag t-bad">yes</span> Home &gt; 11 s</td></tr>
+      <tr><td class="num">9</td><td>Leave approval friction: no bulk approve, unapproved leave unclear in attendance</td><td>Manager, HR</td><td class="src"><b>6</b><a href="https://help.zoho.com/portal/en/community/topic/unapproved-leaves-are-hard-to-distinguish-in-attendance-view" target="_blank" rel="noopener">Forum: unapproved leave in attendance</a><a href="https://help.zoho.com/portal/en/community/topic/approver-not-able-to-approve-leave-request" target="_blank" rel="noopener">Forum: approver can't approve</a></td><td><span class="tag t-warn">partly</span> 4-day wait</td></tr>
+      <tr><td class="num">10</td><td>Timesheet friction: forgetting to log, rejections don't notify, tedious entry</td><td>Employee, Manager</td><td class="src"><b>6</b><a href="https://help.zoho.com/portal/en/community/topic/timesheet-rejection-notification" target="_blank" rel="noopener">Forum: rejection notification</a><a href="https://help.zoho.com/portal/en/community/topic/time-log-reminder" target="_blank" rel="noopener">Forum: time log reminder</a></td><td><span class="tag t-warn">partly</span> missing days</td></tr>
+      <tr><td class="num">11</td><td>Roles vs profiles vs permission sets is confusing</td><td>Admin, Manager</td><td class="src"><b>5</b><a href="https://help.zoho.com/portal/en/kb/projects/settings-in-zoho-projects/profiles-and-roles/articles/profiles-and-roles-projects" target="_blank" rel="noopener">Zoho docs: profiles and roles</a><a href="https://help.zoho.com/portal/en/kb/projects/settings-in-zoho-projects/profiles-and-roles/articles/permission-sets-projects" target="_blank" rel="noopener">Zoho docs: permission sets</a></td><td><span class="tag t-bad">yes</span> denied menu item</td></tr>
+      <tr><td class="num">12</td><td>Payroll rigidity: can't fix one employee after a pay run, mid-cycle joiners</td><td>Finance, Employee</td><td class="src"><b>4</b><a href="https://www.softwaresuggest.com/zoho-payroll/reviews" target="_blank" rel="noopener">SoftwareSuggest: Payroll reviews</a><a href="https://help.zoho.com/portal/ja/community/topic/option-to-download-all-pay-slips-from-zoho-payroll-for-a-person-after-account-disabled" target="_blank" rel="noopener">Forum: payslips after exit</a></td><td>not visible to Employee</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">The full list with about 90 links is in <span class="id">research/pain-points.md</span>. Reddit and Quora couldn't be read (blocked, and Quora requires a login), so the evidence comes from Zoho's forums, review-site snippets, app stores and blogs. Blogs written by competitors are labeled as such.</p>
+</section>
+
+<section>
+  <span class="eyebrow">Suggested scope</span>
+  <h2>A starting point for the build brainstorm</h2>
+  <div class="cols">
+    <div class="card"><h3><span class="tag t-ok">Must</span></h3><ul>
+      <li>Org, users, five plain roles scoped by reporting line and project</li>
+      <li>Clients → SOW → projects → tasks, with keys</li>
+      <li>Org-level charge codes (Bench, Training, Proposal…)</li>
+      <li>Week timesheet: billable flag, notes, approval with reason and approver</li>
+      <li>Leave types, balances, apply/approve with a visible timeline</li>
+      <li>One holiday calendar and work week shared by leave and timesheets</li>
+      <li>Approved leave fills the timesheet automatically</li>
+      <li>Payslip view and download</li>
+      <li>One approvals inbox and in-app notifications with a digest</li>
+      <li>Activity history on every record</li>
+    </ul></div>
+    <div class="card"><h3><span class="tag t-warn">Should</span></h3><ul>
+      <li>Reminders for missing timesheet days (skipping leave and holidays)</li>
+      <li>Delegation and escalation when approvals stall</li>
+      <li>Utilization, timesheet compliance and leave reports, CSV export</li>
+      <li>Investment declarations with an admin window</li>
+    </ul></div>
+    <div class="card"><h3><span class="tag t-bad">Later</span></h3><ul>
+      <li>Gantt, milestones, issue tracker, blueprints (unused today)</li>
+      <li>Attendance check-in and geo-fencing</li>
+      <li>Full payroll engine with statutory calculation</li>
+    </ul><p class="note">Out of scope: mobile app. The build is web only.</p><ul hidden>
+    </ul></div>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">Method and limits</span>
+  <div class="card"><ul>
+    <li>Read-only throughout. The only clicks were navigation, view switches and opening forms, which were then cancelled. Nothing was submitted, approved or changed.</li>
+    <li>Seen through an Employee profile, so admin settings, billing, and the Timesheets approval module were out of reach. People and Payroll plan tiers are unknown.</li>
+    <li>Screenshots include colleagues' names, so check before sharing this page outside the team.</li>
+  </ul></div>
+</section>
+</div>
+
+<dialog id="zoom"><img id="zoom-img" alt=""><p id="zoom-cap"></p></dialog>
+<script>
+const dlg=document.getElementById('zoom'),zi=document.getElementById('zoom-img'),zc=document.getElementById('zoom-cap');
+document.querySelectorAll('figure button').forEach(b=>b.addEventListener('click',()=>{
+  const img=b.querySelector('img');zi.src=img.src;zi.alt=img.alt;
+  zc.textContent=b.parentElement.querySelector('figcaption').textContent.trim();dlg.showModal();}));
+dlg.addEventListener('click',()=>dlg.close());
+</script>

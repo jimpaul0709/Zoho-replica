@@ -1,0 +1,459 @@
+# Mermaid IR — workhub-diagrams.md
+
+12 diagram(s): [0] flowchart (8n/7e), [1] flowchart (9n/9e), [2] flowchart (10n/6e), [3] erDiagram (7n/6e), [4] erDiagram (8n/7e), [5] erDiagram (8n/7e), [6] stateDiagram-v2 (6n/9e), [7] sequenceDiagram (5n/12e), [8] sequenceDiagram (5n/10e), [9] flowchart (8n/7e), [10] flowchart (6n/5e), [11] flowchart (8n/7e)
+
+## Diagram 0 — flowchart
+
+- source layout: none (Mermaid is layout-free); direction: LR
+- nodes: 8 total / 8 drawable / 0 containers, depth 0
+- edges: 7 (7 labeled, 0 dangling), cycle: False
+- shapes: {'rect': 7, 'circle': 1}
+- type candidates: architecture
+- budget: nodes ok (max 9), edges ok (max 12)
+- hubs (focal candidates): WorkHub(7), Zoho \- one\-off import(1), Employees and managers(1), HR, Finance and Admin(1), Microsoft 365(1)
+- entry points: Employees and managers, HR, Finance and Admin, Client users \- optional add\-on, GitHub and GitLab, Zoho \- one\-off import
+- terminals: Microsoft 365, LLM service
+
+### Nodes
+
+| id | label | shape | depth | parent | deg | fields |
+|---|---|---|---|---|---|---|
+| staff | Employees and managers | rect | 0 | - | 0/1 | - |
+| ops | HR, Finance and Admin | rect | 0 | - | 0/1 | - |
+| cli | Client users \- optional add\-on | rect | 0 | - | 0/1 | - |
+| wh | WorkHub | circle | 0 | - | 5/2 | - |
+| m365 | Microsoft 365 | rect | 0 | - | 1/0 | - |
+| git | GitHub and GitLab | rect | 0 | - | 0/1 | - |
+| … | +2 more (use --json) | | | | | |
+
+### Edges
+
+| source | target | label | style |
+|---|---|---|---|
+| Employees and managers | WorkHub | log and approve | solid arrow |
+| HR, Finance and Admin | WorkHub | manage and upload | solid arrow |
+| Client users \- optional add\-on | WorkHub | reports | dashed arrow |
+| WorkHub | Microsoft 365 | sign\-in, calendar, Teams | solid arrow |
+| GitHub and GitLab | WorkHub | commits | solid arrow |
+| WorkHub | LLM service | drafts | solid arrow |
+| … | +1 more (use --json) | | |
+# Mermaid IR — workhub-diagrams.md
+
+12 diagram(s): [0] flowchart (8n/7e), [1] flowchart (9n/9e), [2] flowchart (10n/6e), [3] erDiagram (7n/6e), [4] erDiagram (8n/7e), [5] erDiagram (8n/7e), [6] stateDiagram-v2 (6n/9e), [7] sequenceDiagram (5n/12e), [8] sequenceDiagram (5n/10e), [9] flowchart (8n/7e), [10] flowchart (6n/5e), [11] flowchart (8n/7e)
+
+## Diagram 1 — flowchart
+
+- source layout: none (Mermaid is layout-free); direction: LR
+- nodes: 9 total / 8 drawable / 1 containers, depth 1
+- edges: 9 (9 labeled, 0 dangling), cycle: False
+- shapes: {'rect': 6, 'cylinder': 2, 'container': 1}
+- type candidates: architecture
+- budget: nodes ok (max 9), edges ok (max 12)
+- hubs (focal candidates): Worker(5), API(4), Postgres(2), Microsoft 365(2), File storage(2)
+- entry points: Worker, Web app
+- terminals: Postgres, File storage, Microsoft 365, GitHub and GitLab, LLM service
+- collapsible groups (simplify here first):
+  - WorkHub — 2 children: API, Worker
+
+### Nodes
+
+| id | label | shape | depth | parent | deg | fields |
+|---|---|---|---|---|---|---|
+| WorkHub | WorkHub | container | 0 | - | 0/0 | - |
+| api | API | rect | 1 | WorkHub | 1/3 | - |
+| wrk | Worker | rect | 1 | WorkHub | 0/5 | - |
+| web | Web app | rect | 0 | - | 0/1 | - |
+| pg | Postgres | cylinder | 0 | - | 2/0 | - |
+| files | File storage | cylinder | 0 | - | 2/0 | - |
+| … | +3 more (use --json) | | | | | |
+
+### Edges
+
+| source | target | label | style |
+|---|---|---|---|
+| Web app | API | HTTPS JSON | solid arrow |
+| API | Postgres | SQL | solid arrow |
+| API | File storage | signed URLs | solid arrow |
+| API | Microsoft 365 | OIDC | solid arrow |
+| Worker | Postgres | jobs | solid arrow |
+| Worker | File storage | batches | solid arrow |
+| … | +3 more (use --json) | | |
+# Mermaid IR — workhub-diagrams.md
+
+12 diagram(s): [0] flowchart (8n/7e), [1] flowchart (9n/9e), [2] flowchart (10n/6e), [3] erDiagram (7n/6e), [4] erDiagram (8n/7e), [5] erDiagram (8n/7e), [6] stateDiagram-v2 (6n/9e), [7] sequenceDiagram (5n/12e), [8] sequenceDiagram (5n/10e), [9] flowchart (8n/7e), [10] flowchart (6n/5e), [11] flowchart (8n/7e)
+
+## Diagram 2 — flowchart
+
+- source layout: none (Mermaid is layout-free); direction: LR
+- nodes: 10 total / 7 drawable / 3 containers, depth 1
+- edges: 6 (6 labeled, 0 dangling), cycle: False
+- shapes: {'rect': 5, 'container': 3, 'cylinder': 2}
+- type candidates: architecture
+- budget: nodes ok (max 9), edges ok (max 12)
+- hubs (focal candidates): Worker(3), Edge proxy(2), Postgres(2), API x2(2), Microsoft 365, Git, LLM(1)
+- entry points: Browser, Worker
+- terminals: Postgres, Object storage, Microsoft 365, Git, LLM
+- collapsible groups (simplify here first):
+  - AppZone — 3 children: Edge proxy, API x2, Worker
+  - DataZone — 2 children: Postgres, Object storage
+  - Internet — 1 children: Browser
+
+### Nodes
+
+| id | label | shape | depth | parent | deg | fields |
+|---|---|---|---|---|---|---|
+| Internet | Internet | container | 0 | - | 0/0 | - |
+| br | Browser | rect | 1 | Internet | 0/1 | - |
+| AppZone | AppZone | container | 0 | - | 0/0 | - |
+| px | Edge proxy | rect | 1 | AppZone | 1/1 | - |
+| api | API x2 | rect | 1 | AppZone | 1/1 | - |
+| wk | Worker | rect | 1 | AppZone | 0/3 | - |
+| … | +4 more (use --json) | | | | | |
+
+### Edges
+
+| source | target | label | style |
+|---|---|---|---|
+| Browser | Edge proxy | HTTPS 443 | solid arrow |
+| Edge proxy | API x2 | HTTP 8000 | solid arrow |
+| API x2 | Postgres | TLS 5432 | solid arrow |
+| Worker | Postgres | TLS 5432 | solid arrow |
+| Worker | Object storage | HTTPS 443 | solid arrow |
+| Worker | Microsoft 365, Git, LLM | HTTPS 443 | solid arrow |
+# Mermaid IR — workhub-diagrams.md
+
+12 diagram(s): [0] flowchart (8n/7e), [1] flowchart (9n/9e), [2] flowchart (10n/6e), [3] erDiagram (7n/6e), [4] erDiagram (8n/7e), [5] erDiagram (8n/7e), [6] stateDiagram-v2 (6n/9e), [7] sequenceDiagram (5n/12e), [8] sequenceDiagram (5n/10e), [9] flowchart (8n/7e), [10] flowchart (6n/5e), [11] flowchart (8n/7e)
+
+## Diagram 3 — erDiagram
+
+- source layout: none (Mermaid is layout-free); direction: TD
+- nodes: 7 total / 7 drawable / 0 containers, depth 0
+- edges: 6 (6 labeled, 0 dangling), cycle: False
+- shapes: {'table': 7}
+- type candidates: ER / data model
+- budget: nodes ok (max 9), edges ok (max 12)
+- hubs (focal candidates): USER(3), WORK\_ORDER(2), TEAM(2), PROJECT(2), LOCATION(1)
+- entry points: CLIENT, LOCATION
+- terminals: CHARGE\_CODE
+
+### Nodes
+
+| id | label | shape | depth | parent | deg | fields |
+|---|---|---|---|---|---|---|
+| CLIENT | CLIENT | table | 0 | - | 0/1 | - |
+| WORK\_ORDER | WORK\_ORDER | table | 0 | - | 1/1 | - |
+| PROJECT | PROJECT | table | 0 | - | 1/1 | - |
+| USER | USER | table | 0 | - | 2/1 | - |
+| LOCATION | LOCATION | table | 0 | - | 0/1 | - |
+| TEAM | TEAM | table | 0 | - | 1/1 | - |
+| … | +1 more (use --json) | | | | | |
+
+### Edges
+
+| source | target | label | style |
+|---|---|---|---|
+| CLIENT | WORK\_ORDER | \|\| \-\- o\{ · has | solid cardinality undirected |
+| WORK\_ORDER | PROJECT | \|\| \-\- o\{ · funds | solid cardinality undirected |
+| PROJECT | USER | \}o \-\- o\{ · members | solid cardinality undirected |
+| LOCATION | USER | \|\| \-\- o\{ · works\_at | solid cardinality undirected |
+| USER | TEAM | \}o \-\- o\{ · member\_of | solid cardinality undirected |
+| TEAM | CHARGE\_CODE | \}o \-\- o\{ · may\_use | solid cardinality undirected |
+# Mermaid IR — workhub-diagrams.md
+
+12 diagram(s): [0] flowchart (8n/7e), [1] flowchart (9n/9e), [2] flowchart (10n/6e), [3] erDiagram (7n/6e), [4] erDiagram (8n/7e), [5] erDiagram (8n/7e), [6] stateDiagram-v2 (6n/9e), [7] sequenceDiagram (5n/12e), [8] sequenceDiagram (5n/10e), [9] flowchart (8n/7e), [10] flowchart (6n/5e), [11] flowchart (8n/7e)
+
+## Diagram 4 — erDiagram
+
+- source layout: none (Mermaid is layout-free); direction: TD
+- nodes: 8 total / 8 drawable / 0 containers, depth 0
+- edges: 7 (7 labeled, 0 dangling), cycle: False
+- shapes: {'table': 8}
+- type candidates: ER / data model
+- budget: nodes ok (max 9), edges ok (max 12)
+- hubs (focal candidates): TIME\_ENTRY(3), TIMESHEET\_WEEK(3), USER(2), APPROVAL(2), TASK(1)
+- entry points: SUGGESTION, DELEGATION
+- terminals: TASK, APPROVAL\_STEP
+
+### Nodes
+
+| id | label | shape | depth | parent | deg | fields |
+|---|---|---|---|---|---|---|
+| USER | USER | table | 0 | - | 1/1 | - |
+| TIMESHEET\_WEEK | TIMESHEET\_WEEK | table | 0 | - | 1/2 | - |
+| TIME\_ENTRY | TIME\_ENTRY | table | 0 | - | 2/1 | - |
+| TASK | TASK | table | 0 | - | 1/0 | - |
+| SUGGESTION | SUGGESTION | table | 0 | - | 0/1 | - |
+| APPROVAL | APPROVAL | table | 0 | - | 1/1 | - |
+| … | +2 more (use --json) | | | | | |
+
+### Edges
+
+| source | target | label | style |
+|---|---|---|---|
+| USER | TIMESHEET\_WEEK | \|\| \-\- o\{ · owns | solid cardinality undirected |
+| TIMESHEET\_WEEK | TIME\_ENTRY | \|\| \-\- o\{ · has | solid cardinality undirected |
+| TIME\_ENTRY | TASK | \}o \-\- \|\| · logs\_on | solid cardinality undirected |
+| SUGGESTION | TIME\_ENTRY | \|o \-\- \|\| · becomes | solid cardinality undirected |
+| TIMESHEET\_WEEK | APPROVAL | \|\| \-\- o\{ · needs | solid cardinality undirected |
+| APPROVAL | APPROVAL\_STEP | \|\| \-\- o\{ · logs | solid cardinality undirected |
+| … | +1 more (use --json) | | |
+# Mermaid IR — workhub-diagrams.md
+
+12 diagram(s): [0] flowchart (8n/7e), [1] flowchart (9n/9e), [2] flowchart (10n/6e), [3] erDiagram (7n/6e), [4] erDiagram (8n/7e), [5] erDiagram (8n/7e), [6] stateDiagram-v2 (6n/9e), [7] sequenceDiagram (5n/12e), [8] sequenceDiagram (5n/10e), [9] flowchart (8n/7e), [10] flowchart (6n/5e), [11] flowchart (8n/7e)
+
+## Diagram 5 — erDiagram
+
+- source layout: none (Mermaid is layout-free); direction: TD
+- nodes: 8 total / 8 drawable / 0 containers, depth 0
+- edges: 7 (7 labeled, 0 dangling), cycle: False
+- shapes: {'table': 8}
+- type candidates: ER / data model
+- budget: nodes ok (max 9), edges ok (max 12)
+- hubs (focal candidates): USER(5), PAYSLIP(2), LEAVE\_BALANCE(2), PAYSLIP\_BATCH(1), LEAVE\_TYPE(1)
+- entry points: LEAVE\_TYPE, PAYSLIP\_BATCH, DOCUMENT
+- terminals: LEAVE\_BALANCE, LEAVE\_REQUEST, COMP\_OFF\_REQUEST, PAYSLIP
+
+### Nodes
+
+| id | label | shape | depth | parent | deg | fields |
+|---|---|---|---|---|---|---|
+| USER | USER | table | 0 | - | 1/4 | - |
+| LEAVE\_BALANCE | LEAVE\_BALANCE | table | 0 | - | 2/0 | - |
+| LEAVE\_TYPE | LEAVE\_TYPE | table | 0 | - | 0/1 | - |
+| LEAVE\_REQUEST | LEAVE\_REQUEST | table | 0 | - | 1/0 | - |
+| COMP\_OFF\_REQUEST | COMP\_OFF\_REQUEST | table | 0 | - | 1/0 | - |
+| PAYSLIP | PAYSLIP | table | 0 | - | 2/0 | - |
+| … | +2 more (use --json) | | | | | |
+
+### Edges
+
+| source | target | label | style |
+|---|---|---|---|
+| USER | LEAVE\_BALANCE | \|\| \-\- o\{ · has | solid cardinality undirected |
+| LEAVE\_TYPE | LEAVE\_BALANCE | \|\| \-\- o\{ · of\_type | solid cardinality undirected |
+| USER | LEAVE\_REQUEST | \|\| \-\- o\{ · applies | solid cardinality undirected |
+| USER | COMP\_OFF\_REQUEST | \|\| \-\- o\{ · earns | solid cardinality undirected |
+| USER | PAYSLIP | \|\| \-\- o\{ · receives | solid cardinality undirected |
+| PAYSLIP\_BATCH | PAYSLIP | \|\| \-\- o\{ · contains | solid cardinality undirected |
+| … | +1 more (use --json) | | |
+# Mermaid IR — workhub-diagrams.md
+
+12 diagram(s): [0] flowchart (8n/7e), [1] flowchart (9n/9e), [2] flowchart (10n/6e), [3] erDiagram (7n/6e), [4] erDiagram (8n/7e), [5] erDiagram (8n/7e), [6] stateDiagram-v2 (6n/9e), [7] sequenceDiagram (5n/12e), [8] sequenceDiagram (5n/10e), [9] flowchart (8n/7e), [10] flowchart (6n/5e), [11] flowchart (8n/7e)
+
+## Diagram 6 — stateDiagram-v2
+
+- source layout: none (Mermaid is layout-free); direction: TD
+- nodes: 6 total / 6 drawable / 0 containers, depth 0
+- edges: 9 (8 labeled, 0 dangling), cycle: True
+- shapes: {'state': 5, 'start': 1}
+- type candidates: state machine
+- budget: nodes ok (max 9), edges ok (max 12)
+- hubs (focal candidates): Submitted(5), Draft(4), EditRequested(3), Approved(3), SentBack(2)
+- entry points: \[start\]
+
+### Nodes
+
+| id | label | shape | depth | parent | deg | fields |
+|---|---|---|---|---|---|---|
+| \_\_start\_1 | \[start\] | start | 0 | - | 0/1 | - |
+| Draft | Draft | state | 0 | - | 3/1 | - |
+| Submitted | Submitted | state | 0 | - | 2/3 | - |
+| Approved | Approved | state | 0 | - | 2/1 | - |
+| SentBack | SentBack | state | 0 | - | 1/1 | - |
+| EditRequested | EditRequested | state | 0 | - | 1/2 | - |
+
+### Edges
+
+| source | target | label | style |
+|---|---|---|---|
+| \[start\] | Draft | - | solid arrow |
+| Draft | Submitted | submit | solid arrow |
+| Submitted | Submitted | escalate | solid arrow |
+| Submitted | Approved | approve | solid arrow |
+| Submitted | SentBack | send back | solid arrow |
+| SentBack | Draft | employee edits | solid arrow |
+| … | +3 more (use --json) | | |
+# Mermaid IR — workhub-diagrams.md
+
+12 diagram(s): [0] flowchart (8n/7e), [1] flowchart (9n/9e), [2] flowchart (10n/6e), [3] erDiagram (7n/6e), [4] erDiagram (8n/7e), [5] erDiagram (8n/7e), [6] stateDiagram-v2 (6n/9e), [7] sequenceDiagram (5n/12e), [8] sequenceDiagram (5n/10e), [9] flowchart (8n/7e), [10] flowchart (6n/5e), [11] flowchart (8n/7e)
+
+## Diagram 7 — sequenceDiagram
+
+- source layout: none (Mermaid is layout-free); direction: LR
+- nodes: 5 total / 5 drawable / 0 containers, depth 0
+- edges: 12 (12 labeled, 0 dangling), cycle: True
+- shapes: {'lifeline': 5}
+- type candidates: sequence
+- budget: nodes ok (max 9), edges ok (max 12)
+- hubs (focal candidates): API(10), Web app(6), Worker(4), Manager(2), Employee(2)
+
+### Nodes
+
+| id | label | shape | depth | parent | deg | fields |
+|---|---|---|---|---|---|---|
+| E | Employee | lifeline | 0 | - | 1/1 | - |
+| W | Web app | lifeline | 0 | - | 4/2 | - |
+| A | API | lifeline | 0 | - | 4/6 | - |
+| K | Worker | lifeline | 0 | - | 2/2 | - |
+| M | Manager | lifeline | 0 | - | 1/1 | - |
+
+### Edges
+
+| source | target | label | style |
+|---|---|---|---|
+| Employee | Web app | submit week | solid arrow |
+| Web app | API | POST submit | solid arrow |
+| API | API | check rules | solid arrow |
+| API | Web app | submitted | dashed arrow |
+| API | Worker | queue notice | solid async |
+| Worker | Manager | notify | solid async |
+| … | +6 more (use --json) | | |
+# Mermaid IR — workhub-diagrams.md
+
+12 diagram(s): [0] flowchart (8n/7e), [1] flowchart (9n/9e), [2] flowchart (10n/6e), [3] erDiagram (7n/6e), [4] erDiagram (8n/7e), [5] erDiagram (8n/7e), [6] stateDiagram-v2 (6n/9e), [7] sequenceDiagram (5n/12e), [8] sequenceDiagram (5n/10e), [9] flowchart (8n/7e), [10] flowchart (6n/5e), [11] flowchart (8n/7e)
+
+## Diagram 8 — sequenceDiagram
+
+- source layout: none (Mermaid is layout-free); direction: LR
+- nodes: 5 total / 5 drawable / 0 containers, depth 0
+- edges: 10 (10 labeled, 0 dangling), cycle: True
+- shapes: {'lifeline': 5}
+- type candidates: sequence
+- budget: nodes ok (max 9), edges ok (max 12)
+- hubs (focal candidates): Leave module(10), Approval engine(4), Time module(2), Manager(2), Employee(2)
+
+### Nodes
+
+| id | label | shape | depth | parent | deg | fields |
+|---|---|---|---|---|---|---|
+| E | Employee | lifeline | 0 | - | 1/1 | - |
+| L | Leave module | lifeline | 0 | - | 5/5 | - |
+| P | Approval engine | lifeline | 0 | - | 2/2 | - |
+| T | Time module | lifeline | 0 | - | 1/1 | - |
+| M | Manager | lifeline | 0 | - | 1/1 | - |
+
+### Edges
+
+| source | target | label | style |
+|---|---|---|---|
+| Employee | Leave module | apply leave | solid arrow |
+| Leave module | Leave module | check rules | solid arrow |
+| Leave module | Approval engine | create | solid arrow |
+| Approval engine | Manager | notify | solid async |
+| Manager | Approval engine | approve | solid arrow |
+| Approval engine | Leave module | approved | solid arrow |
+| … | +4 more (use --json) | | |
+# Mermaid IR — workhub-diagrams.md
+
+12 diagram(s): [0] flowchart (8n/7e), [1] flowchart (9n/9e), [2] flowchart (10n/6e), [3] erDiagram (7n/6e), [4] erDiagram (8n/7e), [5] erDiagram (8n/7e), [6] stateDiagram-v2 (6n/9e), [7] sequenceDiagram (5n/12e), [8] sequenceDiagram (5n/10e), [9] flowchart (8n/7e), [10] flowchart (6n/5e), [11] flowchart (8n/7e)
+
+## Diagram 9 — flowchart
+
+- source layout: none (Mermaid is layout-free); direction: LR
+- nodes: 8 total / 8 drawable / 0 containers, depth 0
+- edges: 7 (7 labeled, 0 dangling), cycle: False
+- shapes: {'rect': 6, 'cylinder': 2}
+- type candidates: architecture
+- budget: nodes ok (max 9), edges ok (max 12)
+- hubs (focal candidates): Sync job(3), Matching rules(3), Week view(2), Suggestions(2), LLM service(1)
+- entry points: Outlook calendar, GitHub and GitLab
+- terminals: LLM service, Time entries
+
+### Nodes
+
+| id | label | shape | depth | parent | deg | fields |
+|---|---|---|---|---|---|---|
+| cal | Outlook calendar | rect | 0 | - | 0/1 | - |
+| git | GitHub and GitLab | rect | 0 | - | 0/1 | - |
+| sync | Sync job | rect | 0 | - | 2/1 | - |
+| match | Matching rules | rect | 0 | - | 1/2 | - |
+| llm | LLM service | rect | 0 | - | 1/0 | - |
+| store | Suggestions | cylinder | 0 | - | 1/1 | - |
+| … | +2 more (use --json) | | | | | |
+
+### Edges
+
+| source | target | label | style |
+|---|---|---|---|
+| Outlook calendar | Sync job | events | solid arrow |
+| GitHub and GitLab | Sync job | commits | solid arrow |
+| Sync job | Matching rules | candidates | solid arrow |
+| Matching rules | LLM service | tidy notes | dashed arrow |
+| Matching rules | Suggestions | proposals | solid arrow |
+| Suggestions | Week view | side panel | solid arrow |
+| … | +1 more (use --json) | | |
+# Mermaid IR — workhub-diagrams.md
+
+12 diagram(s): [0] flowchart (8n/7e), [1] flowchart (9n/9e), [2] flowchart (10n/6e), [3] erDiagram (7n/6e), [4] erDiagram (8n/7e), [5] erDiagram (8n/7e), [6] stateDiagram-v2 (6n/9e), [7] sequenceDiagram (5n/12e), [8] sequenceDiagram (5n/10e), [9] flowchart (8n/7e), [10] flowchart (6n/5e), [11] flowchart (8n/7e)
+
+## Diagram 10 — flowchart
+
+- source layout: none (Mermaid is layout-free); direction: TD
+- nodes: 6 total / 6 drawable / 0 containers, depth 0
+- edges: 5 (0 labeled, 0 dangling), cycle: False
+- shapes: {'rect': 6}
+- type candidates: architecture
+- budget: nodes ok (max 9), edges ok (max 12)
+- hubs (focal candidates): WorkHub(5), Work: Clients, Projects, Tasks(1), My space: Week, Leave, Payslips, Notifications(1), Manage: Approvals, Team calendar, Dashboard(1), Insights: Reports, Status reports(1)
+- entry points: WorkHub
+- terminals: My space: Week, Leave, Payslips, Notifications, Manage: Approvals, Team calendar, Dashboard, Work: Clients, Projects, Tasks, Admin: Users, Holidays, Leave types, Payslips, Audit, Insights: Reports, Status reports
+
+### Nodes
+
+| id | label | shape | depth | parent | deg | fields |
+|---|---|---|---|---|---|---|
+| root | WorkHub | rect | 0 | - | 0/5 | - |
+| my | My space: Week, Leave, Payslips, Notifications | rect | 0 | - | 1/0 | - |
+| mgr | Manage: Approvals, Team calendar, Dashboard | rect | 0 | - | 1/0 | - |
+| work | Work: Clients, Projects, Tasks | rect | 0 | - | 1/0 | - |
+| adm | Admin: Users, Holidays, Leave types, Payslips, Audit | rect | 0 | - | 1/0 | - |
+| ins | Insights: Reports, Status reports | rect | 0 | - | 1/0 | - |
+
+### Edges
+
+| source | target | label | style |
+|---|---|---|---|
+| WorkHub | My space: Week, Leave, Payslips, Notifications | - | solid arrow |
+| WorkHub | Manage: Approvals, Team calendar, Dashboard | - | solid arrow |
+| WorkHub | Work: Clients, Projects, Tasks | - | solid arrow |
+| WorkHub | Admin: Users, Holidays, Leave types, Payslips, Audit | - | solid arrow |
+| WorkHub | Insights: Reports, Status reports | - | solid arrow |
+# Mermaid IR — workhub-diagrams.md
+
+12 diagram(s): [0] flowchart (8n/7e), [1] flowchart (9n/9e), [2] flowchart (10n/6e), [3] erDiagram (7n/6e), [4] erDiagram (8n/7e), [5] erDiagram (8n/7e), [6] stateDiagram-v2 (6n/9e), [7] sequenceDiagram (5n/12e), [8] sequenceDiagram (5n/10e), [9] flowchart (8n/7e), [10] flowchart (6n/5e), [11] flowchart (8n/7e)
+
+## Diagram 11 — flowchart
+
+- source layout: none (Mermaid is layout-free); direction: TD
+- nodes: 8 total / 8 drawable / 0 containers, depth 0
+- edges: 7 (4 labeled, 0 dangling), cycle: False
+- shapes: {'rect': 5, 'rhombus': 2, 'stadium': 1}
+- type candidates: flowchart, architecture
+- budget: nodes ok (max 9), edges ok (max 12)
+- hubs (focal candidates): Allowed to see this record?(3), Email matches an active user?(3), Sign in with Microsoft(2), Load roles and reporting line(2), Open WorkHub(1)
+- entry points: Open WorkHub
+- terminals: Access denied, Show the record, Return not found
+
+### Nodes
+
+| id | label | shape | depth | parent | deg | fields |
+|---|---|---|---|---|---|---|
+| start | Open WorkHub | stadium | 0 | - | 0/1 | - |
+| sso | Sign in with Microsoft | rect | 0 | - | 1/1 | - |
+| d1 | Email matches an active user? | rhombus | 0 | - | 1/2 | - |
+| roles | Load roles and reporting line | rect | 0 | - | 1/1 | - |
+| deny | Access denied | rect | 0 | - | 1/0 | - |
+| d2 | Allowed to see this record? | rhombus | 0 | - | 1/2 | - |
+| … | +2 more (use --json) | | | | | |
+
+### Edges
+
+| source | target | label | style |
+|---|---|---|---|
+| Open WorkHub | Sign in with Microsoft | - | solid arrow |
+| Sign in with Microsoft | Email matches an active user? | - | solid arrow |
+| Email matches an active user? | Load roles and reporting line | yes | solid arrow |
+| Email matches an active user? | Access denied | no | solid arrow |
+| Load roles and reporting line | Allowed to see this record? | - | solid arrow |
+| Allowed to see this record? | Show the record | yes | solid arrow |
+| … | +1 more (use --json) | | |
