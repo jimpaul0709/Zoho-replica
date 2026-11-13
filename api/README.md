@@ -9,6 +9,7 @@ cd api
 cp .env.example .env                           # edit .env to point at local Docker or Azure Postgres
 docker compose up -d db minio                  # skip db if .env points at Azure
 uv sync
+uv run alembic upgrade head                    # create/update the tables (see docs/erd.md)
 uv run uvicorn workhub_api.main:app --reload   # http://localhost:8000/health
 ```
 

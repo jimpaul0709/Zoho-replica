@@ -35,14 +35,22 @@ Browser ──► web/ (React, Bun)  ──HTTPS/JSON──►  api/ (FastAPI)  
 - `api/.githooks/pre-commit`: ruff and mypy on commit (turn on with `git config core.hooksPath api/.githooks`).
 - `.github/workflows/api-ci.yml`: has not run yet because nothing is pushed.
 
+## What exists so far (WH-03, 13 Nov)
+
+- `api/docs/erd.md`: the database ERD (Mermaid diagrams, migration plan, rules the database enforces).
+- `api/src/workhub_api/models.py`: SQLAlchemy models for the 25 core tables (organisation, people, projects, tasks, time, approvals, audit, job). The user table is `app_user` because `user` is reserved in Postgres.
+- `api/migrations/versions/0001_core_schema.py`: the first Alembic migration, **applied to the Azure database**. It includes the append-only trigger on `audit_event`.
+- `api/tests/test_schema.py`: checks the database rules (one task or charge code per entry, minutes 1–1440, audit cannot be changed).
+- Leave, payslips and notifications tables come in later migrations (see the ERD).
+
 Run it: see `api/README.md`.
 
 ## What is next (backend lane, Jim)
 
 | When | Item |
 |---|---|
-| now | Set `POSTGRES_SSLMODE=require` in `.env`; turn on the commit hook; push so CI runs once |
-| 16–20 Nov | **WH-03** core database schema and Alembic migrations (tables in the design spec; time as integer minutes; audit event on every change) |
+| now | Push so CI runs once |
+| 16–20 Nov | **WH-03** schema is drafted and migrated; remaining: review with the team, then audit-event helper (write one row on every change) |
 | 23–27 Nov | **WH-20** time API: entries, week, rules, submit and lock |
 | 27 Nov–1 Dec | **WH-30** approval engine v1: route, approve, send back with a reason, history |
 | 2–10 Dec | WH-07 job worker, WH-32 delegation and escalation, WH-33 inbox depth |
