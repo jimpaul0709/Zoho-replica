@@ -79,7 +79,7 @@ def fn(pages):
     d.table(["Layer", "Choice", "Why"],
             [["Web", "React, TypeScript, Vite, Bun", "Fast builds; team familiarity"], ["API and worker", "Python, FastAPI, uv", "Rules and AI in one language; typed schema"],
              ["Database", "PostgreSQL", "Relational model, transactions, job queue table"], ["Files", "S3-compatible storage", "Signed links, portable"],
-             ["Tests", "pytest, Playwright", "Rules in unit tests; five end-to-end journeys"], ["CI", "Lint, tests, build on every push", "Catch breakage before review"]], [1.6, 3.0, 4.4], size=10)
+             ["Tests", "pytest, Playwright", "Rules in unit tests; four end-to-end journeys"], ["CI", "Lint, tests, build on every push", "Catch breakage before review"]], [1.6, 3.0, 4.4], size=10)
 
     d.h("11. Quality Scenarios", 1)
     d.table(["Quality", "Scenario", "Target (proposed)"],

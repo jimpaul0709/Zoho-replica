@@ -57,7 +57,7 @@ NFR = [
     ("MNT", "Maintainability and Testability", "Keeps a three-person team able to change the system safely.", [
         ("MNT-01", "Unit tests", "Every business rule; at least 80% coverage in rule modules", "Coverage report", M),
         ("MNT-02", "API tests", "Run against real Postgres", "CI", M),
-        ("MNT-03", "End-to-end tests", "Five journeys: week, approval, leave, payslip, client portal switch", "Playwright run", M),
+        ("MNT-03", "End-to-end tests", "Four journeys: week, approval, leave, payslip (client portal journey is added with the add-on, later)", "Playwright run", M),
         ("MNT-04", "Quality gate", "Lint, types and tests must pass before merge", "CI", M),
         ("MNT-05", "Migrations", "Versioned and repeatable", "Migration test", M),
         ("MNT-06", "Documents", "README and runbook current at release", "Review", S_)]),
@@ -118,7 +118,7 @@ def fn(pages):
     total = sum(sum(v.values()) for v in counts.values())
     d.figure(p, f"Non-functional requirements by category and priority ({total} in total).", 6.0)
     d.table(["Requirement area", "Realised by"],
-            [["Performance and capacity", "WH-20, WH-21, WH-90 (load and end-to-end tests)"], ["Security and privacy", "WH-04, WH-06, WH-50, WH-51, WH-91"],
+            [["Performance and capacity", "WH-20, WH-21 (rules), WH-90 (end-to-end journeys), WH-94 (load test at release)"], ["Security and privacy", "WH-04, WH-06, WH-50, WH-51, WH-91"],
              ["Accessibility", "WH-05, WH-93"], ["Operations", "WH-07, WH-92, WH-94"]], [2.5, 4.0], size=10)
     d.closing(n + 1, "Jim, Janagan, Jayasree", "Initial draft of the WorkHub non-functional specification.")
     return d

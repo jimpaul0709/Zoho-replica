@@ -98,7 +98,7 @@ def fn(pages):
              ["Safety net", "Backed up daily; at worst we lose one day of data and are back within four hours", "Sign-out", "Automatic after 60 minutes of inactivity"],
              ["Payslips", "Private files; download links stop working after five minutes", "Record keeping", "Every change and every payslip view is recorded for two years"],
              ["Easy to use", "Works with a keyboard and screen readers (WCAG 2.2 AA)", "Privacy", "No monitoring or screenshots; how long data is kept is still to be agreed with HR"],
-             ["Quality checks", "Rules are tested automatically, plus five full walk-throughs", "Size", "Built for up to 500 people, tested with 200"]], [0.9, 2.4, 0.9, 2.3], size=9)
+             ["Quality checks", "Rules are tested automatically, plus four full walk-throughs", "Size", "Built for up to 500 people, tested with 200"]], [0.9, 2.4, 0.9, 2.3], size=9)
 
     d.h("9. The Plan", 1)
     d.figure(A("charts", "roadmap.png"), "Five phases from Nov 13 to Dec 24, with milestones.", 6.0)

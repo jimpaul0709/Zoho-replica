@@ -91,11 +91,11 @@ BACKLOG = [
     # Notifications
     I("WH-60", "Notifications", "Notification core: bell, grouping, per-event preferences", "JK", 1.5, 5),
     # Hardening
-    I("WH-90", "Hardening", "Seed data and end-to-end test journeys", "JP", 2.0, 4),
+    I("WH-90", "Hardening", "Seed data (about 20 users, 2 locations, 3 teams) and four end-to-end journeys", "JP", 2.0, 4),
     I("WH-91", "Hardening", "Security, permission and audit-coverage sweep", "JP", 1.5, 4),
     I("WH-92", "Hardening", "UAT fixes, runbook and handover", "JK", 1.0, 5),
     I("WH-93", "Hardening", "Accessibility pass (WCAG 2.2 AA), UI polish, user guide", "JS", 1.5, 5),
-    I("WH-94", "Hardening", "Bug-fix buffer and release checks", "JP", 1.5, 5),
+    I("WH-94", "Hardening", "Bug-fix buffer, release checks and a basic load test", "JP", 1.5, 5),
     # Stretch: uses the buffer, in priority order
     I("WH-61", "Notifications", "Reminders: missing day, submit week, approver pending", "JP", 1.5, None, "S"),
     I("WH-22", "Time", "Edit-request flow for locked weeks", "JP", 1.0, None, "S"),
