@@ -1,0 +1,4 @@
+#!/bin/sh
+# Lint and type-check before every commit; tests run in CI and via `uv run pytest`.
+cd "$(git rev-parse --show-toplevel)/api" || exit 1
+uv run ruff check . && uv run ruff format --check . && uv run mypy
