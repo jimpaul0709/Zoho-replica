@@ -54,7 +54,7 @@ def world(monkeypatch: pytest.MonkeyPatch) -> Iterator[World]:
     s.add_all([task_list, status])
     s.flush()
     task = Task(task_list_id=task_list.id, status_id=status.id, key="P-1-T1", title="T")
-    code = ChargeCode(code="Bench", name="Bench")
+    code = ChargeCode(code="T-Bench", name="T-Bench")  # not "Bench": the real seed has that one
     s.add_all([task, code])
     s.flush()
     try:

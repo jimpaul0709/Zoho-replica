@@ -43,6 +43,14 @@ Browser ──► web/ (React, Bun)  ──HTTPS/JSON──►  api/ (FastAPI)  
 - `api/tests/test_schema.py`: checks the database rules (one task or charge code per entry, minutes 1–1440, audit cannot be changed).
 - Leave, payslips and notifications tables come in later migrations (see the ERD).
 
+## What exists so far (WH-20, WH-30, WH-07, WH-32, 16 Nov)
+
+- `api/src/workhub_api/timesheets.py`, `approvals.py`: the time API and the approval engine for weeks (see `api/README.md`).
+- `api/src/workhub_api/jobs.py`, `worker.py`: the job queue and the worker (`uv run python -m workhub_api.worker`).
+- `api/src/workhub_api/routing.py`, `delegations.py`: delegation, due dates in working days, escalation. Migration `0002` adds `org_settings.approval_due_working_days`.
+- `api/src/workhub_api/seed.py`: sample data (Jay, Jana, Jim). Run once with `uv run python -m workhub_api.seed`.
+- Speed note: the shared Azure database answers in about 250 ms per round trip from a laptop, so each API call takes 1 to 5 seconds in development. That is distance, not code. In the same Azure region it should take a few milliseconds. Keep the API and the database in one region when deploying.
+
 Run it: see `api/README.md`.
 
 ## What is next (backend lane, Jim)
@@ -53,7 +61,7 @@ Run it: see `api/README.md`.
 | 16–20 Nov | **WH-03** schema is drafted and migrated; remaining: review with the team, then audit-event helper (write one row on every change) |
 | 23–27 Nov | **WH-20** time API: entries, week, rules, submit and lock |
 | 27 Nov–1 Dec | **WH-30** approval engine v1: built for weeks (inbox, approve and lock, send back with a reason, history); leave and edit requests plug in later |
-| 2–10 Dec | WH-07 job worker, WH-32 delegation and escalation, WH-33 inbox depth |
+| 2–10 Dec | WH-07 job worker, WH-32 delegation and escalation, WH-33 inbox depth (filters, bulk approve, timeline) are built |
 | 14–18 Dec | WH-90 seed data and four end-to-end journeys, WH-91 security sweep |
 | 21–23 Dec | WH-94 buffer, release checks, basic load test |
 

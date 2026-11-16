@@ -27,6 +27,7 @@ from workhub_api.models import (
     TimesheetWeek,
     User,
 )
+from workhub_api.routing import approver_for, due_at_for
 
 router = APIRouter(prefix="/time", tags=["time"])
 
@@ -247,7 +248,8 @@ def submit_week(week_start: date, session: SessionDep, user: CurrentUser) -> Wee
         subject_type="week",
         subject_id=week.id,
         requester_id=user.id,
-        approver_id=user.manager_id,  # delegation and escalation routing arrive with WH-30/WH-32
+        approver_id=approver_for(session, user.manager_id, user.id),  # the delegate, if any
+        due_at=due_at_for(session, user),  # overdue approvals are escalated (routing.py)
         status="pending",
     )
     session.add(approval)

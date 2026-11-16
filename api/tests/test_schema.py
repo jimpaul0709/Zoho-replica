@@ -56,8 +56,8 @@ def test_time_entry_needs_exactly_one_target(conn: Connection) -> None:
 
 def test_time_entry_minutes_range(conn: Connection) -> None:
     week = _week(conn)
-    conn.execute(text("insert into charge_code (code, name) values ('Bench','Bench')"))
-    target = ", charge_code_id|, (select id from charge_code where code = 'Bench')"
+    conn.execute(text("insert into charge_code (code, name) values ('T-Bench','T-Bench')"))
+    target = ", charge_code_id|, (select id from charge_code where code = 'T-Bench')"
     _entry(conn, week, target)  # a valid entry goes in
     with pytest.raises(IntegrityError):
         _entry(conn, week, target, minutes=1441)

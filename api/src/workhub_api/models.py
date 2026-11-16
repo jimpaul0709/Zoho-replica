@@ -64,6 +64,7 @@ class OrgSettings(Stamped, Base):
     daily_expected_minutes: Mapped[int] = mapped_column(Integer, server_default="480")
     fy_start_month: Mapped[int] = mapped_column(Integer, server_default="4")
     client_portal_enabled: Mapped[bool] = mapped_column(Boolean, server_default=text("false"))
+    approval_due_working_days: Mapped[int] = mapped_column(Integer, server_default="2")
 
 
 class Location(Stamped, Base):

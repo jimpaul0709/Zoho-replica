@@ -25,7 +25,9 @@ def test_approve_locks_the_week_and_records_history(world: World) -> None:
     steps = world.client.get(f"/approvals/{approval_id}/history", headers=hdr(world.emp)).json()
     assert [s["action"] for s in steps] == ["submitted", "approved"]
     actions = world.session.scalars(
-        select(AuditEvent.action).where(AuditEvent.entity == "timesheet_week")
+        select(AuditEvent.action).where(
+            AuditEvent.entity == "timesheet_week", AuditEvent.actor_id == world.boss.id
+        )
     ).all()
     assert "approved" in actions
 
@@ -47,7 +49,8 @@ def test_send_back_pins_reason_and_reopens_week(world: World) -> None:
     # Resubmitting creates a fresh approval; the sent-back one stays in the history.
     second = submit(world)
     assert second != approval_id
-    assert len(world.session.scalars(select(Approval)).all()) == 2
+    mine = select(Approval).where(Approval.requester_id == world.emp.id)
+    assert len(world.session.scalars(mine).all()) == 2
 
 
 def test_only_the_approver_can_act_and_only_once(world: World) -> None:

@@ -52,7 +52,9 @@ def test_edit_delete_and_ownership(world: World) -> None:
     assert world.client.patch(url, json={"minutes": 5}, headers=hdr(world.boss)).status_code == 404
     assert world.client.delete(url, headers=hdr(world.emp)).status_code == 204
     actions = world.session.scalars(
-        select(AuditEvent.action).where(AuditEvent.entity == "time_entry").order_by(AuditEvent.id)
+        select(AuditEvent.action)
+        .where(AuditEvent.entity == "time_entry", AuditEvent.actor_id == world.emp.id)
+        .order_by(AuditEvent.id)
     ).all()
     assert list(actions) == ["created", "updated", "deleted"]
 
@@ -62,7 +64,9 @@ def test_submit_creates_approval_and_locks_edits(world: World) -> None:
     start = str(week_json(world)["week_start"])
     res = world.client.post(f"/time/weeks/{start}/submit", headers=hdr(world.emp))
     assert res.status_code == 200 and res.json()["status"] == "submitted"
-    approval = world.session.scalars(select(Approval)).one()
+    approval = world.session.scalars(
+        select(Approval).where(Approval.requester_id == world.emp.id)
+    ).one()
     assert approval.approver_id == world.boss.id and approval.status == "pending"
     assert add(world, 30) == 409  # submitted weeks can't be changed
     again = world.client.post(f"/time/weeks/{start}/submit", headers=hdr(world.emp))

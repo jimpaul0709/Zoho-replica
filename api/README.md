@@ -38,12 +38,33 @@ Interactive docs at http://localhost:8000/docs.
 
 | Call | What it does |
 |---|---|
-| `GET /approvals/inbox` | Pending approvals assigned to you (who, which week, total minutes) |
+| `GET /approvals/inbox` | Pending approvals assigned to you. Each row has who, the week, total minutes, age, due date, overdue flag, level and the timeline (who acted, comment, minutes since the step before). Filters: `subject_type`, `requester_id`, `overdue=true`. Sort: `sort=oldest` (default), `newest`, `due` |
+| `POST /approvals/bulk-approve` | Approve many at once (`approval_ids`, up to 100). Ones that can't be approved are skipped with a reason and the rest still go through |
 | `POST /approvals/{id}/approve` | Approve; the week becomes `approved` and is locked |
 | `POST /approvals/{id}/send-back` | Send back with a `reason` (and optional `entry_ids` to pin it on); the week returns to `draft` |
-| `GET /approvals/{id}/history` | The steps: submitted, approved or sent back, who and when |
+| `GET /approvals/{id}/history` | The steps: submitted, delegated, escalated, approved or sent back, with who, when and time taken. Readable by the requester, the current approver and anyone who acted on it |
 
 Only weeks are supported so far. Delegation and escalation come with WH-32.
+
+## Delegation and escalation (WH-32)
+
+| Call | What it does |
+|---|---|
+| `POST /delegations` | Hand your approvals to someone for a date range (`to_user_id`, `starts_on`, `ends_on`) |
+| `GET /delegations` | Delegations you gave and received |
+| `DELETE /delegations/{id}` | Remove one you gave (approvals already moved stay with the delegate) |
+
+- New approvals go to the manager's delegate, if one is active. Pending approvals move when a delegation starts.
+- Every approval gets a due date, 2 working days out (`org_settings.approval_due_working_days`), skipping weekends and the requester's location holidays.
+- An approval past its due date moves up to the approver's manager. Notifying people is WH-60, so for now it is recorded in the approval history and audit log.
+
+## Background worker (WH-07)
+
+```bash
+uv run python -m workhub_api.worker   # runs queued jobs; run it next to the API
+```
+
+Jobs are rows in the `job` table (`jobs.enqueue(...)`). Failed jobs retry with a growing delay (30 s, 60 s, ... up to 5 tries), and a handler runs inside a savepoint, so a failure undoes its own changes. The worker keeps one repeating job alive, `approval_housekeeping`, every 15 minutes, which applies delegations and escalates overdue approvals.
 
 ## Check before pushing
 
