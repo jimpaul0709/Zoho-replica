@@ -12,6 +12,7 @@ from sqlalchemy import or_, select
 from workhub_api.audit import record, snapshot
 from workhub_api.db import CurrentUser, SessionDep
 from workhub_api.models import Delegation, User
+from workhub_api.permissions import Manager, roles_of
 from workhub_api.routing import apply_delegations
 
 router = APIRouter(prefix="/delegations", tags=["delegations"])
@@ -40,12 +41,16 @@ class DelegationOut(BaseModel):
 
 
 @router.post("", response_model=DelegationOut, status_code=201)
-def create_delegation(body: DelegationIn, session: SessionDep, user: CurrentUser) -> Delegation:
+def create_delegation(body: DelegationIn, session: SessionDep, user: Manager) -> Delegation:
     if body.to_user_id == user.id:
         raise HTTPException(422, "You can't delegate to yourself")
     to = session.get(User, body.to_user_id)
     if to is None or not to.active:
         raise HTTPException(422, "Unknown or inactive user")
+    if "manager" not in roles_of(session, to.id):
+        raise HTTPException(
+            422, "You can only delegate to a manager"
+        )  # a delegate must be able to act
     if body.ends_on < date.today():
         raise HTTPException(422, "That delegation is already over")
     delegation = Delegation(from_user_id=user.id, **body.model_dump())

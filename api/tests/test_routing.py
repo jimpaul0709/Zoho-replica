@@ -4,7 +4,7 @@ from conftest import World, add, hdr, submit, week_json
 from sqlalchemy import select
 
 from workhub_api import jobs
-from workhub_api.models import Approval, Holiday, Job, Location, User
+from workhub_api.models import Approval, Holiday, Job, Location, RoleAssignment, User
 from workhub_api.routing import (
     HOUSEKEEPING,
     add_working_days,
@@ -24,6 +24,8 @@ def person(w: World, code: str, manager: User | None = None) -> User:
         manager_id=manager.id if manager else None,
     )
     w.session.add(user)
+    w.session.flush()
+    w.session.add(RoleAssignment(user_id=user.id, role="manager"))  # people made here can approve
     w.session.flush()
     return user
 

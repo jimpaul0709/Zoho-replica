@@ -66,6 +66,19 @@ uv run python -m workhub_api.worker   # runs queued jobs; run it next to the API
 
 Jobs are rows in the `job` table (`jobs.enqueue(...)`). Failed jobs retry with a growing delay (30 s, 60 s, ... up to 5 tries), and a handler runs inside a savepoint, so a failure undoes its own changes. The worker keeps one repeating job alive, `approval_housekeeping`, every 15 minutes, which applies delegations and escalates overdue approvals.
 
+## Roles (who can do what)
+
+Roles are employee, manager, hr, finance and admin, and a person can hold several. The API checks them (`permissions.py`); the UI only hides what a role can't open. No sign-in gets 401, a missing role gets 403.
+
+| Action | Needs |
+|---|---|
+| Log time, submit your week, see your own inbox and delegations | any signed-in user |
+| Approve, send back, bulk approve, create a delegation | the **manager** role |
+| Be the delegate of a delegation | the **manager** role (checked when the delegation is created) |
+| HR, finance and admin only features (leave types, payslips, reports, settings, audit log) | not built yet. Use `Depends(require_roles("hr"))` when you add them |
+
+On top of the role, approvals also check that the approval is **assigned to you** (your report's manager, a delegate, or the escalation target), and you can only touch your own time entries.
+
 ## Check before pushing
 
 ```bash

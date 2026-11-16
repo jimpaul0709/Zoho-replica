@@ -20,6 +20,7 @@ from sqlalchemy.orm import Session
 from workhub_api.audit import record, snapshot
 from workhub_api.db import CurrentUser, SessionDep
 from workhub_api.models import Approval, ApprovalStep, TimeEntry, TimesheetWeek, User
+from workhub_api.permissions import Manager
 
 router = APIRouter(prefix="/approvals", tags=["approvals"])
 
@@ -235,14 +236,14 @@ def _approve(session: Session, user: User, approval_id: int) -> Approval:
 
 
 @router.post("/{approval_id}/approve", response_model=ApprovalOut)
-def approve(approval_id: int, session: SessionDep, user: CurrentUser) -> Approval:
+def approve(approval_id: int, session: SessionDep, user: Manager) -> Approval:
     approval = _approve(session, user, approval_id)
     session.commit()
     return approval
 
 
 @router.post("/bulk-approve", response_model=BulkResult)
-def bulk_approve(body: BulkApprove, session: SessionDep, user: CurrentUser) -> BulkResult:
+def bulk_approve(body: BulkApprove, session: SessionDep, user: Manager) -> BulkResult:
     """Approve many at once. One that can't be approved is skipped, with the reason, and the
     others still go through. Each approval is all-or-nothing on its own (a savepoint)."""
     approved: list[int] = []
@@ -260,7 +261,7 @@ def bulk_approve(body: BulkApprove, session: SessionDep, user: CurrentUser) -> B
 
 
 @router.post("/{approval_id}/send-back", response_model=ApprovalOut)
-def send_back(approval_id: int, body: SendBack, session: SessionDep, user: CurrentUser) -> Approval:
+def send_back(approval_id: int, body: SendBack, session: SessionDep, user: Manager) -> Approval:
     approval, week = _my_pending_week(session, user, approval_id)
     ids = set(body.entry_ids)
     entries = list(

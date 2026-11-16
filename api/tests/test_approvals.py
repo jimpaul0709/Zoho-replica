@@ -1,7 +1,7 @@
 from conftest import World, add, hdr, submit, week_json
 from sqlalchemy import select
 
-from workhub_api.models import Approval, AuditEvent
+from workhub_api.models import Approval, AuditEvent, RoleAssignment, User
 
 
 def test_inbox_lists_submitted_week(world: World) -> None:
@@ -57,7 +57,13 @@ def test_only_the_approver_can_act_and_only_once(world: World) -> None:
     add(world)
     approval_id = submit(world)
     url = f"/approvals/{approval_id}"
-    assert world.client.post(f"{url}/approve", headers=hdr(world.emp)).status_code == 404
+    assert world.client.post(f"{url}/approve", headers=hdr(world.emp)).status_code == 403  # no role
+    other = User(employee_code="M2", name="M2", email="m2@x.io")  # a manager, but not this one's
+    world.session.add(other)
+    world.session.flush()
+    world.session.add(RoleAssignment(user_id=other.id, role="manager"))
+    world.session.flush()
+    assert world.client.post(f"{url}/approve", headers=hdr(other)).status_code == 404
     assert world.client.post(f"{url}/approve", headers=hdr(world.boss)).status_code == 200
     assert world.client.post(f"{url}/approve", headers=hdr(world.boss)).status_code == 409
 

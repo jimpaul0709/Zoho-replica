@@ -3,7 +3,7 @@ from datetime import UTC, date, datetime, timedelta
 from conftest import DAY, World, hdr
 from sqlalchemy import select
 
-from workhub_api.models import Approval, User
+from workhub_api.models import Approval, RoleAssignment, User
 
 
 def person(w: World, code: str, manager: User | None) -> User:
@@ -14,6 +14,8 @@ def person(w: World, code: str, manager: User | None) -> User:
         manager_id=manager.id if manager else None,
     )
     w.session.add(user)
+    w.session.flush()
+    w.session.add(RoleAssignment(user_id=user.id, role="manager"))  # people made here can approve
     w.session.flush()
     return user
 

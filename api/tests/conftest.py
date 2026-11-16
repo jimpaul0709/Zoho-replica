@@ -14,6 +14,7 @@ from workhub_api.main import app
 from workhub_api.models import (
     ChargeCode,
     Project,
+    RoleAssignment,
     Task,
     TaskList,
     TaskStatus,
@@ -55,7 +56,15 @@ def world(monkeypatch: pytest.MonkeyPatch) -> Iterator[World]:
     s.flush()
     task = Task(task_list_id=task_list.id, status_id=status.id, key="P-1-T1", title="T")
     code = ChargeCode(code="T-Bench", name="T-Bench")  # not "Bench": the real seed has that one
-    s.add_all([task, code])
+    s.add_all(
+        [
+            task,
+            code,
+            RoleAssignment(user_id=boss.id, role="employee"),
+            RoleAssignment(user_id=boss.id, role="manager"),
+            RoleAssignment(user_id=emp.id, role="employee"),
+        ]
+    )
     s.flush()
     try:
         yield World(s, TestClient(app), emp, boss, task, code)
