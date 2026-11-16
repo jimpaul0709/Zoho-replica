@@ -13,6 +13,15 @@ uv run alembic upgrade head                    # create/update the tables (see d
 uv run uvicorn workhub_api.main:app --reload   # http://localhost:8000/health
 ```
 
+## Sample data
+
+```bash
+uv run python -m workhub_api.seed   # Jay, Jana, Jim (chain Jim -> Jana -> Jay), 3 teams, 1 project
+```
+
+It prints each person's id to use as `X-User-Id`. Safe to run twice (it skips if already there).
+It writes to whatever database `.env` points at, so on the shared Azure database run it once.
+
 ## Time API (WH-20)
 
 Sign-in is not built yet. Set `DEV_AUTH=true` in `.env`, then send `X-User-Id: <app_user id>` on each call.
