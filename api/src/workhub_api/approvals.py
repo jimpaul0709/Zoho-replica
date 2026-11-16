@@ -2,8 +2,11 @@
 
 WH-30 built approve / send back / history, WH-33 added the deeper inbox: filters and sorting,
 each row's age, due date, level and trail (who acted, the comment, how long each step took), and
-bulk approve. Only weeks are handled for now; leave, comp-off and edit requests plug in with their
-features. Every action is an approval_step plus audit.
+bulk approve. Weeks and edit requests are handled; leave and comp-off plug in with their features.
+Every action is an approval_step plus audit.
+
+A week can be decided as a whole or day by day (day_decisions.py): approving or sending back the
+week is the same thing as doing it for every day that is still waiting.
 
 The inbox loads everything in a handful of queries however many rows it has (not one query per
 row), because every database round trip is slow when the database is far away.
@@ -18,11 +21,13 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from workhub_api.audit import record, snapshot
+from workhub_api.day_decisions import decide, returned_reasons, settle, waiting_days
 from workhub_api.db import CurrentUser, SessionDep
 from workhub_api.edit_requests import apply_changes
 from workhub_api.models import (
     Approval,
     ApprovalStep,
+    DayDecision,
     EditRequest,
     TimeEntry,
     TimesheetWeek,
@@ -38,8 +43,20 @@ class SendBack(BaseModel):
     entry_ids: list[int] = []  # entries to pin the reason on; empty pins it on the approval only
 
 
+class DaySendBack(BaseModel):
+    reason: str = Field(min_length=1)
+    entry_ids: list[int] = []  # entries of that day to pin the reason on
+
+
 class BulkApprove(BaseModel):
     approval_ids: list[int] = Field(min_length=1, max_length=100)
+
+
+class DayOut(BaseModel):
+    work_date: date
+    minutes: int
+    status: str  # pending, approved or sent_back
+    reason: str | None
 
 
 class StepOut(BaseModel):
@@ -64,6 +81,7 @@ class InboxItem(BaseModel):
     overdue: bool
     week_start: date | None
     total_minutes: int
+    days: list[DayOut]  # each day with time: its minutes and the manager's decision so far
     timeline: list[StepOut]
 
 
@@ -112,6 +130,18 @@ def _timelines(session: Session, approval_ids: list[int]) -> dict[int, list[Step
             )
         )
     return out
+
+
+def _days(minutes: dict[date, int], decided: dict[date, DayDecision]) -> list[DayOut]:
+    return [
+        DayOut(
+            work_date=day,
+            minutes=total,
+            status=decided[day].status if day in decided else "pending",
+            reason=decided[day].reason if day in decided else None,
+        )
+        for day, total in sorted(minutes.items())
+    ]
 
 
 @router.get("/inbox", response_model=list[InboxItem])
@@ -166,14 +196,16 @@ def inbox(
         w.id: w
         for w in session.scalars(select(TimesheetWeek).where(TimesheetWeek.id.in_(week_ids)))
     }
-    totals = {
-        r[0]: int(r[1])
-        for r in session.execute(
-            select(TimeEntry.week_id, func.sum(TimeEntry.minutes))
-            .where(TimeEntry.week_id.in_(week_ids))
-            .group_by(TimeEntry.week_id)
-        )
-    }
+    minutes: dict[int, dict[date, int]] = {}
+    for entry_week, day, total in session.execute(
+        select(TimeEntry.week_id, TimeEntry.work_date, func.sum(TimeEntry.minutes))
+        .where(TimeEntry.week_id.in_(week_ids))
+        .group_by(TimeEntry.week_id, TimeEntry.work_date)
+    ):
+        minutes.setdefault(entry_week, {})[day] = int(total)
+    decided: dict[int, dict[date, DayDecision]] = {}
+    for decision in session.scalars(select(DayDecision).where(DayDecision.week_id.in_(week_ids))):
+        decided.setdefault(decision.week_id, {})[decision.work_date] = decision
     timelines = _timelines(session, [a.id for a in approvals])
 
     items: list[InboxItem] = []
@@ -193,7 +225,10 @@ def inbox(
                 due_at=a.due_at,
                 overdue=a.due_at is not None and a.due_at < now,
                 week_start=week.week_start if week else None,
-                total_minutes=totals.get(week_id, 0) if week_id is not None else 0,
+                total_minutes=sum(minutes.get(week_id, {}).values()) if week_id is not None else 0,
+                days=_days(minutes.get(week_id, {}), decided.get(week_id, {}))
+                if week_id is not None
+                else [],
                 timeline=timelines.get(a.id, []),
             )
         )
@@ -213,8 +248,10 @@ def _my_pending(session: Session, user: User, approval_id: int) -> Approval:
 
 
 def _week_of(session: Session, approval: Approval) -> TimesheetWeek:
-    week = (
-        session.get(TimesheetWeek, approval.subject_id) if approval.subject_type == "week" else None
+    week = (  # locked, so an edit in progress finishes first and we decide on what is really there
+        session.get(TimesheetWeek, approval.subject_id, with_for_update=True)
+        if approval.subject_type == "week"
+        else None
     )
     if week is None:
         raise HTTPException(422, f"'{approval.subject_type}' approvals are not supported yet")
@@ -257,6 +294,50 @@ def _log(
         )
 
 
+def _finish(
+    session: Session,
+    user: User,
+    approval: Approval,
+    week: TimesheetWeek,
+    before: tuple[dict[str, object], dict[str, object]],
+    reason: str | None = None,
+) -> None:
+    """Close the approval once every day is decided. Until then it stays pending.
+
+    All days approved: the week is approved and locked (changes need an edit request). Any day
+    sent back: the week goes back to draft for the employee to fix and resubmit."""
+    outcome = settle(session, week.id)
+    if outcome == "pending":
+        return
+    if outcome == "approved":
+        approval.status = "approved"
+        week.status = "approved"
+        week.locked_at = datetime.now(UTC)
+        _log(session, user, approval, week, "approved", before)
+        return
+    approval.status = "sent_back"
+    approval.reason = reason or returned_reasons(session, week.id)
+    week.status = "draft"
+    _log(session, user, approval, week, "sent_back", before, comment=approval.reason)
+
+
+def _entries_to_pin(
+    session: Session, week: TimesheetWeek, ids: set[int], day: date | None = None
+) -> list[TimeEntry]:
+    query = select(TimeEntry).where(TimeEntry.id.in_(ids), TimeEntry.week_id == week.id)
+    if day is not None:
+        query = query.where(TimeEntry.work_date == day)
+    entries = list(session.scalars(query))
+    if len(entries) != len(ids):
+        raise HTTPException(
+            422,
+            "Some entries don't belong to that day"
+            if day
+            else "Some entries don't belong to this week",
+        )
+    return entries
+
+
 def _approve(session: Session, user: User, approval_id: int) -> Approval:
     """Approve one approval. A week gets locked; an edit request gets its changes applied (and
     stays pending, with the reason, if they no longer pass the rules). The caller commits."""
@@ -274,11 +355,15 @@ def _approve(session: Session, user: User, approval_id: int) -> Approval:
         _log(session, user, approval, request, "approved", edit_before)
         return approval
     week = _week_of(session, approval)
+    if not session.scalar(
+        select(func.count()).select_from(TimeEntry).where(TimeEntry.week_id == week.id)
+    ):  # the employee can edit until approval, including deleting everything
+        raise HTTPException(
+            409, "This week has no entries any more, so there is nothing to approve"
+        )
     before = (snapshot(approval), snapshot(week))
-    approval.status = "approved"
-    week.status = "approved"
-    week.locked_at = datetime.now(UTC)  # an approved week is locked; changes need an edit request
-    _log(session, user, approval, week, "approved", before)
+    decide(session, user, week, waiting_days(session, week.id), "approved")
+    _finish(session, user, approval, week, before)
     return approval
 
 
@@ -322,21 +407,54 @@ def send_back(approval_id: int, body: SendBack, session: SessionDep, user: Manag
         session.commit()
         return approval
     week = _week_of(session, approval)
-    ids = set(body.entry_ids)
-    entries = list(
-        session.scalars(
-            select(TimeEntry).where(TimeEntry.id.in_(ids), TimeEntry.week_id == week.id)
-        )
-    )
-    if len(entries) != len(ids):
-        raise HTTPException(422, "Some entries don't belong to this week")
+    entries = _entries_to_pin(session, week, set(body.entry_ids))
     before = (snapshot(approval), snapshot(week))
+    decide(session, user, week, waiting_days(session, week.id), "sent_back", body.reason)
     for entry in entries:
         entry.sent_back_reason = body.reason
-    approval.status = "sent_back"
-    approval.reason = body.reason
-    week.status = "draft"  # back to the employee to fix and resubmit
-    _log(session, user, approval, week, "sent_back", before, comment=body.reason)
+    _finish(session, user, approval, week, before, reason=body.reason)  # closes: nothing waits
+    session.commit()
+    return approval
+
+
+@router.post("/{approval_id}/days/{work_date}/approve", response_model=ApprovalOut)
+def approve_day(approval_id: int, work_date: date, session: SessionDep, user: Manager) -> Approval:
+    """Approve one day. That day is locked. The approval closes once every day is decided."""
+    approval = _my_pending(session, user, approval_id)
+    week = _week_of(session, approval)
+    before = (snapshot(approval), snapshot(week))
+    decide(session, user, week, [work_date], "approved")
+    session.add(
+        ApprovalStep(
+            approval_id=approval.id, actor_id=user.id, action="day_approved", comment=str(work_date)
+        )
+    )
+    _finish(session, user, approval, week, before)
+    session.commit()
+    return approval
+
+
+@router.post("/{approval_id}/days/{work_date}/send-back", response_model=ApprovalOut)
+def send_back_day(
+    approval_id: int, work_date: date, body: DaySendBack, session: SessionDep, user: Manager
+) -> Approval:
+    """Send one day back with a reason. The employee fixes it; the other days carry on."""
+    approval = _my_pending(session, user, approval_id)
+    week = _week_of(session, approval)
+    entries = _entries_to_pin(session, week, set(body.entry_ids), work_date)
+    before = (snapshot(approval), snapshot(week))
+    decide(session, user, week, [work_date], "sent_back", body.reason)
+    for entry in entries:
+        entry.sent_back_reason = body.reason
+    session.add(
+        ApprovalStep(
+            approval_id=approval.id,
+            actor_id=user.id,
+            action="day_sent_back",
+            comment=f"{work_date}: {body.reason}",
+        )
+    )
+    _finish(session, user, approval, week, before)
     session.commit()
     return approval
 

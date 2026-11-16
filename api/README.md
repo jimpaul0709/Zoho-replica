@@ -29,19 +29,21 @@ Interactive docs at http://localhost:8000/docs.
 
 | Call | What it does |
 |---|---|
-| `GET /time/week?on=YYYY-MM-DD` | The week's entries, status and per-day minutes |
+| `GET /time/week?on=YYYY-MM-DD` | The week's entries, status, per-day minutes, each day's status (`draft`, `submitted`, `approved`, `sent_back`) and the approved minutes |
 | `POST /time/entries` | Add an entry (one task or one charge code) |
-| `PATCH /time/entries/{id}`, `DELETE /time/entries/{id}` | Change or remove an entry (draft weeks only) |
+| `PATCH /time/entries/{id}`, `DELETE /time/entries/{id}` | Change or remove an entry (until the week is approved) |
 | `POST /time/weeks/{week_start}/submit` | Submit the week and create the approval for the manager |
 
 ## Approvals (WH-30)
 
 | Call | What it does |
 |---|---|
-| `GET /approvals/inbox` | Pending approvals assigned to you. Each row has who, the week, total minutes, age, due date, overdue flag, level and the timeline (who acted, comment, minutes since the step before). Filters: `subject_type`, `requester_id`, `overdue=true`. Sort: `sort=oldest` (default), `newest`, `due` |
+| `GET /approvals/inbox` | Pending approvals assigned to you. Each row has who, the week, total minutes, each day's minutes and decision so far, age, due date, overdue flag, level and the timeline (who acted, comment, minutes since the step before). Filters: `subject_type`, `requester_id`, `overdue=true`. Sort: `sort=oldest` (default), `newest`, `due` |
 | `POST /approvals/bulk-approve` | Approve many at once (`approval_ids`, up to 100). Ones that can't be approved are skipped with a reason and the rest still go through |
-| `POST /approvals/{id}/approve` | Approve; the week becomes `approved` and is locked |
-| `POST /approvals/{id}/send-back` | Send back with a `reason` (and optional `entry_ids` to pin it on); the week returns to `draft` |
+| `POST /approvals/{id}/approve` | Approve the whole week: every day still waiting is approved, and the week becomes `approved` and is locked |
+| `POST /approvals/{id}/send-back` | Send the whole week back with a `reason` (and optional `entry_ids` to pin it on): every day still waiting is sent back and the week returns to `draft`. Days already approved stay approved |
+| `POST /approvals/{id}/days/{date}/approve` | Approve one day. That day is locked. When every day is decided the approval closes: all approved means the week is approved and locked |
+| `POST /approvals/{id}/days/{date}/send-back` | Send one day back with a `reason` (and optional `entry_ids` of that day). The employee fixes it; once every day is decided the week returns to `draft` and the employee resubmits. Only the sent-back days go back to the manager |
 | `GET /approvals/{id}/history` | The steps: submitted, delegated, escalated, approved or sent back, with who, when and time taken. Readable by the requester, the current approver and anyone who acted on it |
 
 Only weeks are supported so far. Delegation and escalation come with WH-32.

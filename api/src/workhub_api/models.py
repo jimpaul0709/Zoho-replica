@@ -315,6 +315,26 @@ class EditRequest(Stamped, Base):
     status: Mapped[str] = mapped_column(String(20), server_default="pending")
 
 
+class DayDecision(Stamped, Base):
+    """The manager's decision on one day of a week: approved (locked) or sent back to fix.
+
+    No row means the day is still waiting (or still a draft). Rows for sent-back days are removed
+    when the employee resubmits; rows for approved days stay.
+    """
+
+    __tablename__ = "day_decision"
+    __table_args__ = (
+        UniqueConstraint("week_id", "work_date"),
+        CheckConstraint("status in ('approved','sent_back')", name="status"),
+    )
+
+    week_id: Mapped[int] = _fk("timesheet_week.id")
+    work_date: Mapped[date] = mapped_column(Date)
+    status: Mapped[str] = mapped_column(String(20))
+    reason: Mapped[str | None] = mapped_column(Text)
+    decided_by: Mapped[int] = _fk("app_user.id")
+
+
 class AuditEvent(Base):
     """Append-only: a trigger in the migration rejects UPDATE and DELETE."""
 

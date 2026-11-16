@@ -2,7 +2,8 @@
 
 Rules (design spec 6.3): no future dates, a day can't pass 24 h, each entry has exactly one
 task or charge code, charge codes only for teams they are shared with, leave/holiday entries are
-read-only, and only a draft week can be changed. Approving (and so locking) is WH-30.
+read-only, and a week can be changed until it is approved (draft or submitted). Approving locks it;
+after that only an edit request (WH-22) can change it.
 """
 
 from datetime import date, timedelta
@@ -14,6 +15,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from workhub_api.audit import record, snapshot
+from workhub_api.day_decisions import check_day_open, decisions_of, reopen_returned
 from workhub_api.db import CurrentUser, SessionDep
 from workhub_api.models import (
     Approval,
@@ -75,6 +77,8 @@ class WeekOut(BaseModel):
     locked: bool
     entries: list[EntryOut]
     day_minutes: dict[date, int]
+    day_status: dict[date, str]  # draft, submitted, approved or sent_back, for each day with time
+    approved_minutes: int  # minutes on days the manager has approved
 
 
 def week_start_for(session: Session, day: date) -> date:
@@ -93,17 +97,21 @@ def _find_week(session: Session, user: User, start: date) -> TimesheetWeek | Non
 
 
 def _editable_week(session: Session, user: User, day: date) -> TimesheetWeek:
-    """The user's week for `day` (created as draft if new); 409 unless it is still a draft."""
+    """The user's week for `day` (created as draft if new); 409 once it is approved (locked)."""
     # One writer per user at a time until commit: stops two requests both passing the 24 h check.
     session.execute(select(func.pg_advisory_xact_lock(user.id)))
     start = week_start_for(session, day)
-    week = _find_week(session, user, start)
+    week = session.scalars(
+        select(TimesheetWeek)
+        .where(TimesheetWeek.user_id == user.id, TimesheetWeek.week_start == start)
+        .with_for_update()  # an approval at the same moment waits for this edit, or we see it
+    ).first()
     if week is None:
         week = TimesheetWeek(user_id=user.id, week_start=start, status="draft")
         session.add(week)
         session.flush()
-    if week.status != "draft":
-        raise HTTPException(409, f"Week is {week.status}; only a draft week can be changed")
+    if week.status not in ("draft", "submitted"):
+        raise HTTPException(409, f"Week is {week.status}; it is locked (file an edit request)")
     return week
 
 
@@ -175,12 +183,17 @@ def get_week(session: SessionDep, user: CurrentUser, on: date | None = None) -> 
     totals: dict[date, int] = {}
     for e in entries:
         totals[e.work_date] = totals.get(e.work_date, 0) + e.minutes
+    decided = decisions_of(session, week.id) if week else {}
+    waiting = week.status if week and week.status in ("submitted", "approved") else "draft"
+    day_status = {day: decided[day].status if day in decided else waiting for day in totals}
     return WeekOut(
         week_start=start,
         status=week.status if week else "draft",
         locked=bool(week and week.locked_at),
         entries=[EntryOut.model_validate(e) for e in entries],
         day_minutes=totals,
+        day_status=day_status,
+        approved_minutes=sum(m for day, m in totals.items() if day_status[day] == "approved"),
     )
 
 
@@ -190,6 +203,7 @@ def add_entry(body: EntryIn, session: SessionDep, user: CurrentUser) -> TimeEntr
         raise HTTPException(422, "Entries can't be for future dates")
     check_target(session, user, body.task_id, body.charge_code_id)
     week = _editable_week(session, user, body.work_date)
+    check_day_open(session, week.id, body.work_date)
     if _day_total(session, user, body.work_date) + body.minutes > 1440:
         raise HTTPException(422, "A day can't go over 24 hours")
     entry = TimeEntry(user_id=user.id, week_id=week.id, source="manual", **body.model_dump())
@@ -205,7 +219,8 @@ def edit_entry(
     entry_id: int, body: EntryPatch, session: SessionDep, user: CurrentUser
 ) -> TimeEntry:
     entry = _own_entry(session, user, entry_id)
-    _editable_week(session, user, entry.work_date)
+    week = _editable_week(session, user, entry.work_date)
+    check_day_open(session, week.id, entry.work_date)
     before = snapshot(entry)
     changes = body.model_dump(exclude_unset=True)
     if changes.get("minutes") is not None and (
@@ -224,7 +239,8 @@ def edit_entry(
 @router.delete("/entries/{entry_id}", status_code=204)
 def delete_entry(entry_id: int, session: SessionDep, user: CurrentUser) -> None:
     entry = _own_entry(session, user, entry_id)
-    _editable_week(session, user, entry.work_date)
+    week = _editable_week(session, user, entry.work_date)
+    check_day_open(session, week.id, entry.work_date)
     before = snapshot(entry)
     session.delete(entry)
     session.flush()
@@ -246,6 +262,7 @@ def submit_week(week_start: date, session: SessionDep, user: CurrentUser) -> Wee
     if user.manager_id is None:
         raise HTTPException(422, "You have no manager to approve this week")
     before = snapshot(week)
+    reopen_returned(session, user, week)  # days sent back earlier wait for the manager again
     week.status = "submitted"
     approval = Approval(
         subject_type="week",

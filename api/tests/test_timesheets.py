@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 
-from conftest import DAY, World, add, hdr, week_json
+from conftest import DAY, World, add, hdr, submit, week_json
 from sqlalchemy import select
 
 from workhub_api.models import Approval, AuditEvent, ChargeCodeTeam, Team, TeamMember
@@ -59,7 +59,7 @@ def test_edit_delete_and_ownership(world: World) -> None:
     assert list(actions) == ["created", "updated", "deleted"]
 
 
-def test_submit_creates_approval_and_locks_edits(world: World) -> None:
+def test_submit_creates_an_approval_for_the_manager(world: World) -> None:
     assert add(world, 60) == 201
     start = str(week_json(world)["week_start"])
     res = world.client.post(f"/time/weeks/{start}/submit", headers=hdr(world.emp))
@@ -68,6 +68,37 @@ def test_submit_creates_approval_and_locks_edits(world: World) -> None:
         select(Approval).where(Approval.requester_id == world.emp.id)
     ).one()
     assert approval.approver_id == world.boss.id and approval.status == "pending"
-    assert add(world, 30) == 409  # submitted weeks can't be changed
     again = world.client.post(f"/time/weeks/{start}/submit", headers=hdr(world.emp))
     assert again.status_code == 409
+
+
+def test_a_submitted_week_can_be_edited_until_it_is_approved(world: World) -> None:
+    assert add(world, 60) == 201
+    approval_id = submit(world)
+    assert add(world, 30) == 201  # still editable while it waits for the manager
+    week = week_json(world)
+    assert week["status"] == "submitted"
+    first, second = (e["id"] for e in week["entries"])  # type: ignore[attr-defined]
+    url = f"/time/entries/{first}"
+    assert world.client.patch(url, json={"minutes": 45}, headers=hdr(world.emp)).status_code == 200
+    assert world.client.delete(f"/time/entries/{second}", headers=hdr(world.emp)).status_code == 204
+    row = world.client.get("/approvals/inbox", headers=hdr(world.boss)).json()[0]
+    assert row["total_minutes"] == 45  # the manager sees what is there now
+    approve = world.client.post(f"/approvals/{approval_id}/approve", headers=hdr(world.boss))
+    assert approve.status_code == 200
+    assert add(world, 5) == 409  # approved: locked
+    assert world.client.patch(url, json={"minutes": 5}, headers=hdr(world.emp)).status_code == 409
+    assert world.client.delete(url, headers=hdr(world.emp)).status_code == 409
+
+
+def test_a_week_emptied_after_submit_cannot_be_approved(world: World) -> None:
+    assert add(world, 60) == 201
+    approval_id = submit(world)
+    entry_id = week_json(world)["entries"][0]["id"]  # type: ignore[index]
+    assert (
+        world.client.delete(f"/time/entries/{entry_id}", headers=hdr(world.emp)).status_code == 204
+    )
+    url = f"/approvals/{approval_id}/approve"
+    assert world.client.post(url, headers=hdr(world.boss)).status_code == 409
+    assert add(world, 60) == 201  # the employee adds something again
+    assert world.client.post(url, headers=hdr(world.boss)).status_code == 200

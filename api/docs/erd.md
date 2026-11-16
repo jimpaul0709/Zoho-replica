@@ -16,6 +16,7 @@ Conventions (apply to every table): `id` primary key, `created_at` and `updated_
 | 4. Notifications (WH-60) | Diagram 3, notification tables | 21–23 Dec |
 | Done: approval due days (WH-32) | Column `org_settings.approval_due_working_days` | migration 0002, 16 Nov |
 | Done: edit requests (WH-22) | Table `edit_request` | migration 0003, 16 Nov |
+| Done: per-day approval | Table `day_decision` | migration 0004, 16 Nov |
 | Stretch / later | `running_timer`, `suggestion`, `anomaly`, `saved_view`, `project_template`, `status_report`, `integration_account`, `repo_link`, client portal tables | after Dec 24 |
 
 ## Rules the database must enforce
@@ -26,6 +27,7 @@ Conventions (apply to every table): `id` primary key, `created_at` and `updated_
 - `timesheet_week` is unique per (`user_id`, `week_start`).
 - `approval.subject_type` + `subject_id` is a polymorphic reference (week, leave, comp_off, edit_request), so there is no real foreign key. The API checks it.
 - `audit_event` is append-only: no update or delete grants for the app user.
+- A manager can decide a whole week or one day at a time. An approved day is locked (`day_decision`); when every day with time is approved the week is approved and locked, otherwise it returns to draft and only the sent-back days go to the manager again on resubmit. A week can be edited until it is approved.
 - Manager chain must not loop (`user.manager_id` is checked in the API on save).
 - Approved leave writes `time_entry` rows with `source = 'leave'` in the same transaction as the balance deduction.
 
@@ -242,6 +244,16 @@ erDiagram
     json before
     json after
     datetime at "append only"
+  }
+  TIMESHEET_WEEK ||--o{ DAY_DECISION : decided_by_day
+  APP_USER ||--o{ DAY_DECISION : decides
+  DAY_DECISION {
+    int id PK
+    int week_id FK "unique with work_date"
+    date work_date
+    string status "approved or sent_back; no row means still waiting"
+    text reason
+    int decided_by FK
   }
   TIMESHEET_WEEK ||--o{ EDIT_REQUEST : changes
   APP_USER ||--o{ EDIT_REQUEST : files
