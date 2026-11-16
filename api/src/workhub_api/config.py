@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     # Temporary until Entra sign-in (WH-04): accept an X-User-Id header. Must be off in production.
     dev_auth: bool = False
 
+    # Microsoft Entra sign-in (WH-04). Both come from the app registration's Overview page.
+    entra_tenant_id: str = ""
+    entra_client_id: str = ""
+
     @property
     def database_url(self) -> URL:
         # URL.create escapes special characters in the password.

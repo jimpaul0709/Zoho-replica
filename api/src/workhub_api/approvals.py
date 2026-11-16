@@ -19,7 +19,15 @@ from sqlalchemy.orm import Session
 
 from workhub_api.audit import record, snapshot
 from workhub_api.db import CurrentUser, SessionDep
-from workhub_api.models import Approval, ApprovalStep, TimeEntry, TimesheetWeek, User
+from workhub_api.edit_requests import apply_changes
+from workhub_api.models import (
+    Approval,
+    ApprovalStep,
+    EditRequest,
+    TimeEntry,
+    TimesheetWeek,
+    User,
+)
 from workhub_api.permissions import Manager
 
 router = APIRouter(prefix="/approvals", tags=["approvals"])
@@ -139,7 +147,21 @@ def inbox(
             select(User.id, User.name).where(User.id.in_({a.requester_id for a in approvals}))
         )
     }
-    week_ids = [a.subject_id for a in approvals if a.subject_type == "week"]
+    request_week = {  # an edit request shows the week it wants to change
+        r.id: r.week_id
+        for r in session.scalars(
+            select(EditRequest).where(
+                EditRequest.id.in_(
+                    [a.subject_id for a in approvals if a.subject_type == "edit_request"]
+                )
+            )
+        )
+    }
+    week_of = {
+        a.id: a.subject_id if a.subject_type == "week" else request_week.get(a.subject_id)
+        for a in approvals
+    }
+    week_ids = [w for w in week_of.values() if w is not None]
     weeks = {
         w.id: w
         for w in session.scalars(select(TimesheetWeek).where(TimesheetWeek.id.in_(week_ids)))
@@ -156,7 +178,8 @@ def inbox(
 
     items: list[InboxItem] = []
     for a in approvals:
-        week = weeks.get(a.subject_id) if a.subject_type == "week" else None
+        week_id = week_of[a.id]
+        week = weeks.get(week_id) if week_id is not None else None
         items.append(
             InboxItem(
                 approval_id=a.id,
@@ -170,17 +193,15 @@ def inbox(
                 due_at=a.due_at,
                 overdue=a.due_at is not None and a.due_at < now,
                 week_start=week.week_start if week else None,
-                total_minutes=totals.get(a.subject_id, 0) if week else 0,
+                total_minutes=totals.get(week_id, 0) if week_id is not None else 0,
                 timeline=timelines.get(a.id, []),
             )
         )
     return items
 
 
-def _my_pending_week(
-    session: Session, user: User, approval_id: int
-) -> tuple[Approval, TimesheetWeek]:
-    """Load (and lock) a pending week approval that is assigned to `user`."""
+def _my_pending(session: Session, user: User, approval_id: int) -> Approval:
+    """Load (and lock) a pending approval that is assigned to `user`."""
     approval = session.scalars(
         select(Approval).where(Approval.id == approval_id).with_for_update()
     ).first()
@@ -188,19 +209,30 @@ def _my_pending_week(
         raise HTTPException(404, "Approval not found")
     if approval.status != "pending":
         raise HTTPException(409, f"Already {approval.status}")
+    return approval
+
+
+def _week_of(session: Session, approval: Approval) -> TimesheetWeek:
     week = (
         session.get(TimesheetWeek, approval.subject_id) if approval.subject_type == "week" else None
     )
     if week is None:
         raise HTTPException(422, f"'{approval.subject_type}' approvals are not supported yet")
-    return approval, week
+    return week
+
+
+def _request_of(session: Session, approval: Approval) -> EditRequest:
+    request = session.get(EditRequest, approval.subject_id)
+    if request is None:
+        raise HTTPException(409, "The edit request no longer exists")
+    return request
 
 
 def _log(
     session: Session,
     user: User,
     approval: Approval,
-    week: TimesheetWeek,
+    subject: TimesheetWeek | EditRequest,
     action: str,
     before: tuple[dict[str, object], dict[str, object]],
     comment: str | None = None,
@@ -209,9 +241,10 @@ def _log(
         ApprovalStep(approval_id=approval.id, actor_id=user.id, action=action, comment=comment)
     )
     session.flush()
+    subject_entity = "edit_request" if isinstance(subject, EditRequest) else "timesheet_week"
     for entity, row, old in (
         ("approval", approval, before[0]),
-        ("timesheet_week", week, before[1]),
+        (subject_entity, subject, before[1]),
     ):
         record(
             session,
@@ -225,8 +258,22 @@ def _log(
 
 
 def _approve(session: Session, user: User, approval_id: int) -> Approval:
-    """Approve one approval and lock its week. The caller commits."""
-    approval, week = _my_pending_week(session, user, approval_id)
+    """Approve one approval. A week gets locked; an edit request gets its changes applied (and
+    stays pending, with the reason, if they no longer pass the rules). The caller commits."""
+    approval = _my_pending(session, user, approval_id)
+    if approval.subject_type == "edit_request":
+        request = _request_of(session, approval)
+        week = session.get(TimesheetWeek, request.week_id)
+        requester = session.get(User, request.requester_id)
+        if week is None or requester is None:
+            raise HTTPException(409, "The week or the requester no longer exists")
+        edit_before = (snapshot(approval), snapshot(request))
+        apply_changes(session, requester, week, request.changes, actor=user, dry_run=False)
+        approval.status = "approved"
+        request.status = "approved"
+        _log(session, user, approval, request, "approved", edit_before)
+        return approval
+    week = _week_of(session, approval)
     before = (snapshot(approval), snapshot(week))
     approval.status = "approved"
     week.status = "approved"
@@ -262,7 +309,19 @@ def bulk_approve(body: BulkApprove, session: SessionDep, user: Manager) -> BulkR
 
 @router.post("/{approval_id}/send-back", response_model=ApprovalOut)
 def send_back(approval_id: int, body: SendBack, session: SessionDep, user: Manager) -> Approval:
-    approval, week = _my_pending_week(session, user, approval_id)
+    approval = _my_pending(session, user, approval_id)
+    if approval.subject_type == "edit_request":
+        if body.entry_ids:
+            raise HTTPException(422, "Entries can't be pinned on an edit request")
+        request = _request_of(session, approval)
+        edit_before = (snapshot(approval), snapshot(request))
+        approval.status = "sent_back"
+        approval.reason = body.reason
+        request.status = "rejected"  # the week stays locked and unchanged
+        _log(session, user, approval, request, "sent_back", edit_before, comment=body.reason)
+        session.commit()
+        return approval
+    week = _week_of(session, approval)
     ids = set(body.entry_ids)
     entries = list(
         session.scalars(

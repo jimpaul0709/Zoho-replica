@@ -49,6 +49,8 @@ Browser ──► web/ (React, Bun)  ──HTTPS/JSON──►  api/ (FastAPI)  
 - `api/src/workhub_api/jobs.py`, `worker.py`: the job queue and the worker (`uv run python -m workhub_api.worker`).
 - `api/src/workhub_api/routing.py`, `delegations.py`: delegation, due dates in working days, escalation. Migration `0002` adds `org_settings.approval_due_working_days`.
 - `api/src/workhub_api/seed.py`: sample data (Jay, Jana, Jim). Run once with `uv run python -m workhub_api.seed`.
+- `api/src/workhub_api/permissions.py`: role checks (managers approve and delegate). `edit_requests.py` (WH-22): changing a locked week through approval. Migration `0003` adds the `edit_request` table.
+- **Shared database note:** the Azure database also holds another module's tables (`users`, `employees`, `roles`, `organizations` and more, with their own `people_alembic_version`). Our Alembic ignores tables that are not in our models (`migrations/env.py`), so it never drops them. Check with the team how our `app_user`, `team` and `holiday` tables relate to their `users`, `teams` and `holidays`.
 - Speed note: the shared Azure database answers in about 250 ms per round trip from a laptop, so each API call takes 1 to 5 seconds in development. That is distance, not code. In the same Azure region it should take a few milliseconds. Keep the API and the database in one region when deploying.
 
 Run it: see `api/README.md`.

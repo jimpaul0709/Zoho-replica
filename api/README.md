@@ -66,6 +66,20 @@ uv run python -m workhub_api.worker   # runs queued jobs; run it next to the API
 
 Jobs are rows in the `job` table (`jobs.enqueue(...)`). Failed jobs retry with a growing delay (30 s, 60 s, ... up to 5 tries), and a handler runs inside a savepoint, so a failure undoes its own changes. The worker keeps one repeating job alive, `approval_housekeeping`, every 15 minutes, which applies delegations and escalates overdue approvals.
 
+## Edit requests for locked weeks (WH-22)
+
+An approved week is locked. To change it, file an edit request: a reason and a list of changes. It goes through the same approval engine, so the inbox, delegation, escalation and bulk approve all work for it.
+
+| Call | What it does |
+|---|---|
+| `POST /time/weeks/{week_start}/edit-requests` | File a request for an **approved** week. Body: `reason` and `changes`, each `{"op":"add", work_date, minutes, task_id or charge_code_id, billable, notes}`, `{"op":"update", entry_id, minutes / billable / notes}` or `{"op":"delete", entry_id}`. One pending request per week |
+| `GET /time/edit-requests`, `GET /time/edit-requests/{id}` | Your requests; one request in full (requester, current approver and anyone who acted can read it) |
+| `POST /time/edit-requests/{id}/cancel` | Cancel your own pending request |
+| `POST /approvals/{id}/approve` | Applies every change in one step. The week stays locked |
+| `POST /approvals/{id}/send-back` | Rejects the request (the week is untouched). Needs a `reason`, and no `entry_ids` |
+
+The time rules (no future dates, 24 h a day, one task or charge code, charge codes shared with your team, leave and holiday entries read-only, changes inside that week) are checked when you file it and **again** when it is approved. If they no longer pass at approval, the approval fails with the reason, nothing is applied, and it stays pending.
+
 ## Roles (who can do what)
 
 Roles are employee, manager, hr, finance and admin, and a person can hold several. The API checks them (`permissions.py`); the UI only hides what a role can't open. No sign-in gets 401, a missing role gets 403.

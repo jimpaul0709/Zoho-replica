@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WorkHub sign-in test</title>
+<style>
+  body { font: 16px system-ui, sans-serif; max-width: 640px; margin: 3rem auto; padding: 0 16px; }
+  button { font: inherit; padding: .5rem 1rem; margin-right: .5rem; }
+  pre { background: #f2f2f2; padding: 1rem; overflow: auto; }
+  @media (prefers-color-scheme: dark) { body { background: #111; color: #eee; } pre { background: #222; } }
+</style>
+</head>
+<body>
+<h1>WorkHub sign-in test</h1>
+<p>Try-out page only. Sign in with your Ampera Microsoft account and see who the API thinks you are.</p>
+<p><button id="in">Sign in with Microsoft</button><button id="out" hidden>Sign out</button></p>
+<pre id="log">Loading...</pre>
+
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.27.0/lib/msal-browser.min.js"></script>
+<script>
+const log = document.getElementById("log");
+const show = (x) => { log.textContent = typeof x === "string" ? x : JSON.stringify(x, null, 2); };
+let msal, scopes;
+
+async function whoAmI(account) {
+  const tok = await msal.acquireTokenSilent({ scopes, account });
+  const res = await fetch("/me", { headers: { Authorization: "Bearer " + tok.accessToken } });
+  const body = await res.json();
+  show({ status: res.status, token_expires_at: tok.expiresOn.toString(), response: body });
+  document.getElementById("in").hidden = true;
+  document.getElementById("out").hidden = false;
+}
+
+(async () => {
+  const cfg = await (await fetch("/auth-config")).json();
+  if (!cfg.tenant_id || !cfg.client_id) { show("Set ENTRA_TENANT_ID and ENTRA_CLIENT_ID in .env, then restart the API."); return; }
+  scopes = [`api://${cfg.client_id}/access_as_user`];
+  msal = new msalBrowser.PublicClientApplication({
+    auth: {
+      clientId: cfg.client_id,
+      authority: "https://login.microsoftonline.com/" + cfg.tenant_id,
+      redirectUri: location.origin + location.pathname,
+    },
+    cache: { cacheLocation: "sessionStorage" },
+  });
+  await msal.initialize();
+  const account = msal.getAllAccounts()[0];
+  if (account) await whoAmI(account).catch((e) => show(String(e))); else show("Not signed in.");
+
+  document.getElementById("in").onclick = async () => {
+    try {
+      const r = await msal.loginPopup({ scopes });
+      await whoAmI(r.account);
+    } catch (e) { show(String(e)); }
+  };
+  document.getElementById("out").onclick = () => msal.logoutPopup().then(() => location.reload());
+})();
+</script>
+</body>
+</html>

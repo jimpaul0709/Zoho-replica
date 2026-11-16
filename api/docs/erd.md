@@ -14,7 +14,9 @@ Conventions (apply to every table): `id` primary key, `created_at` and `updated_
 | 2. Leave (WH-40/41) | Diagram 3, leave tables | 2–11 Dec |
 | 3. Payslips (WH-50) | Diagram 3, payslip tables | 14–16 Dec |
 | 4. Notifications (WH-60) | Diagram 3, notification tables | 21–23 Dec |
-| Stretch / later | `running_timer`, `suggestion`, `edit_request`, `anomaly`, `saved_view`, `project_template`, `status_report`, `integration_account`, `repo_link`, client portal tables | after Dec 24 |
+| Done: approval due days (WH-32) | Column `org_settings.approval_due_working_days` | migration 0002, 16 Nov |
+| Done: edit requests (WH-22) | Table `edit_request` | migration 0003, 16 Nov |
+| Stretch / later | `running_timer`, `suggestion`, `anomaly`, `saved_view`, `project_template`, `status_report`, `integration_account`, `repo_link`, client portal tables | after Dec 24 |
 
 ## Rules the database must enforce
 
@@ -38,6 +40,7 @@ erDiagram
     int daily_expected_minutes "default 480"
     int fy_start_month "default 4"
     bool client_portal_enabled "default false"
+    int approval_due_working_days "default 2"
   }
   LOCATION ||--o{ HOLIDAY : has
   LOCATION ||--o{ APP_USER : works_at
@@ -239,6 +242,16 @@ erDiagram
     json before
     json after
     datetime at "append only"
+  }
+  TIMESHEET_WEEK ||--o{ EDIT_REQUEST : changes
+  APP_USER ||--o{ EDIT_REQUEST : files
+  EDIT_REQUEST {
+    int id PK
+    int week_id FK
+    int requester_id FK
+    text reason
+    json changes "list of add, update or delete of entries"
+    string status "pending approved rejected cancelled"
   }
   JOB {
     int id PK

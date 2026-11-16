@@ -300,6 +300,21 @@ class Delegation(Stamped, Base):
     ends_on: Mapped[date] = mapped_column(Date)
 
 
+class EditRequest(Stamped, Base):
+    """A request to change a locked (approved) week. It goes through approval (WH-22)."""
+
+    __tablename__ = "edit_request"
+    __table_args__ = (
+        CheckConstraint("status in ('pending','approved','rejected','cancelled')", name="status"),
+    )
+
+    week_id: Mapped[int] = _fk("timesheet_week.id", index=True)
+    requester_id: Mapped[int] = _fk("app_user.id")
+    reason: Mapped[str] = mapped_column(Text)
+    changes: Mapped[list[dict[str, Any]]] = mapped_column(JSONB)  # add / update / delete entries
+    status: Mapped[str] = mapped_column(String(20), server_default="pending")
+
+
 class AuditEvent(Base):
     """Append-only: a trigger in the migration rejects UPDATE and DELETE."""
 

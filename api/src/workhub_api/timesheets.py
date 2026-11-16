@@ -116,12 +116,15 @@ def _day_total(session: Session, user: User, day: date, skip_id: int | None = No
     return int(session.scalar(q) or 0)
 
 
-def _check_target(session: Session, user: User, body: EntryIn) -> None:
-    if body.task_id is not None:
-        if session.get(Task, body.task_id) is None:
+def check_target(
+    session: Session, user: User, task_id: int | None, charge_code_id: int | None
+) -> None:
+    """The task must exist; a charge code must exist, be active and be shared with their team."""
+    if task_id is not None:
+        if session.get(Task, task_id) is None:
             raise HTTPException(422, "Unknown task")
         return
-    code = session.get(ChargeCode, body.charge_code_id) if body.charge_code_id else None
+    code = session.get(ChargeCode, charge_code_id) if charge_code_id else None
     if code is None or not code.active:
         raise HTTPException(422, "Unknown or inactive charge code")
     shared = session.scalars(
@@ -185,7 +188,7 @@ def get_week(session: SessionDep, user: CurrentUser, on: date | None = None) -> 
 def add_entry(body: EntryIn, session: SessionDep, user: CurrentUser) -> TimeEntry:
     if body.work_date > date.today():  # shortcut: server date, not the user's timezone
         raise HTTPException(422, "Entries can't be for future dates")
-    _check_target(session, user, body)
+    check_target(session, user, body.task_id, body.charge_code_id)
     week = _editable_week(session, user, body.work_date)
     if _day_total(session, user, body.work_date) + body.minutes > 1440:
         raise HTTPException(422, "A day can't go over 24 hours")

@@ -13,10 +13,24 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 
+def include_object(obj, name, type_, reflected, compare_to):  # type: ignore[no-untyped-def]
+    """Only manage our own tables.
+
+    The shared database also holds other modules' tables (for example the people module, which has
+    its own migration history). Without this, autogenerate sees them as "not in our models" and
+    proposes dropping them.
+    """
+    if type_ == "table":
+        return name in target_metadata.tables
+    table = getattr(obj, "table", None)
+    return table is None or table.name in target_metadata.tables
+
+
 def run_migrations_offline() -> None:
     context.configure(
         url=settings.database_url.render_as_string(hide_password=False),
         target_metadata=target_metadata,
+        include_object=include_object,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
     )
@@ -28,7 +42,11 @@ def run_migrations_online() -> None:
     # Built from settings, not alembic.ini, so passwords with special characters stay intact.
     engine = create_engine(settings.database_url, poolclass=pool.NullPool)
     with engine.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            include_object=include_object,
+        )
         with context.begin_transaction():
             context.run_migrations()
 
