@@ -255,6 +255,8 @@ def file_edit_request(
         raise HTTPException(409, "Only an approved (locked) week needs an edit request")
     if user.manager_id is None:
         raise HTTPException(422, "You have no manager to approve this")
+    # Lock before checking, so two requests at the same moment can't both see "none pending".
+    session.execute(select(func.pg_advisory_xact_lock(user.id)))
     if session.scalar(
         select(EditRequest.id).where(
             EditRequest.week_id == week.id, EditRequest.status == "pending"
