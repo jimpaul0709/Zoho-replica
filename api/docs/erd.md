@@ -16,8 +16,7 @@ Conventions (apply to every table): `id` primary key, `created_at` and `updated_
 | 4. Notifications (WH-60) | Diagram 3, notification tables | 21–23 Dec |
 | Done: approval due days (WH-32) | Column `org_settings.approval_due_working_days` | migration 0002, 16 Nov |
 | Done: edit requests (WH-22) | Table `edit_request` | migration 0003, 16 Nov |
-| Done: per-day approval | Table `day_decision` | migration 0004, 16 Nov |
-| Stretch / later | `running_timer`, `suggestion`, `anomaly`, `saved_view`, `project_template`, `status_report`, `integration_account`, `repo_link`, client portal tables | after Dec 24 |
+| Done: per-day approval | Table `day_decision` | migration 0004, 16 Nov || Stretch / later | `running_timer`, `suggestion`, `anomaly`, `saved_view`, `project_template`, `status_report`, `integration_account`, `repo_link`, client portal tables | after Dec 24 |
 
 ## Rules the database must enforce
 

@@ -78,6 +78,7 @@ class WeekOut(BaseModel):
     entries: list[EntryOut]
     day_minutes: dict[date, int]
     day_status: dict[date, str]  # draft, submitted, approved or sent_back, for each day with time
+    day_reasons: dict[date, str]  # why a day was sent back
     approved_minutes: int  # minutes on days the manager has approved
 
 
@@ -188,6 +189,11 @@ def get_week(session: SessionDep, user: CurrentUser, on: date | None = None) -> 
     decided = decisions_of(session, week.id) if week else {}
     waiting = week.status if week and week.status in ("submitted", "approved") else "draft"
     day_status = {day: decided[day].status if day in decided else waiting for day in totals}
+    day_reasons = {
+        day: d.reason
+        for day, d in decided.items()
+        if d.status == "sent_back" and d.reason and day in totals
+    }
     return WeekOut(
         week_start=start,
         status=week.status if week else "draft",
@@ -195,6 +201,7 @@ def get_week(session: SessionDep, user: CurrentUser, on: date | None = None) -> 
         entries=[EntryOut.model_validate(e) for e in entries],
         day_minutes=totals,
         day_status=day_status,
+        day_reasons=day_reasons,
         approved_minutes=sum(m for day, m in totals.items() if day_status[day] == "approved"),
     )
 

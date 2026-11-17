@@ -29,7 +29,7 @@ Interactive docs at http://localhost:8000/docs.
 
 | Call | What it does |
 |---|---|
-| `GET /time/week?on=YYYY-MM-DD` | The week's entries, status, per-day minutes, each day's status (`draft`, `submitted`, `approved`, `sent_back`) and the approved minutes |
+| `GET /time/week?on=YYYY-MM-DD` | The week's entries, status, per-day minutes, each day's status (`draft`, `submitted`, `approved`, `sent_back`), why a day was sent back and the approved minutes |
 | `POST /time/entries` | Add an entry (one task or one charge code) |
 | `PATCH /time/entries/{id}`, `DELETE /time/entries/{id}` | Change or remove an entry (until the week is approved) |
 | `POST /time/weeks/{week_start}/submit` | Submit the week and create the approval for the manager |
@@ -86,15 +86,15 @@ An approved week is locked. To change it, file an edit request: a reason and a l
 
 The time rules (no future dates, 24 h a day, one task or charge code, charge codes shared with your team, leave and holiday entries read-only, changes inside that week) are checked when you file it and **again** when it is approved. If they no longer pass at approval, the approval fails with the reason, nothing is applied, and it stays pending.
 
-## HR correction of an approved week
+## HR options on an approved week
 
-HR can also correct an approved week directly, with a required reason, instead of waiting for an edit request. The changes use the same format and the same time rules as an edit request, are applied at once, and the week stays locked. The audit log records the changes under the HR person's name, with the reason. HR can't correct their own week, and a week with a pending edit request is refused until that is resolved.
+HR (the `hr` role) has two ways to fix an approved week, each with a required reason. HR can't use them on their own week, and a week with a pending edit request is refused until that is resolved.
 
 | Call | What it does |
 |---|---|
-| `POST /hr/users/{user_id}/weeks/{week_start}/corrections` | HR role only. Body: `reason` and `changes` (add, update, delete, as for edit requests). Returns the corrected week |
-
-The other HR option, a notification that lets the employee edit the entry, waits for the notification work (WH-60).
+| `POST /hr/users/{user_id}/weeks/{week_start}/corrections` | **Correct directly.** Body: `reason` and `changes` (add, update, delete, as for edit requests). Checked against every time rule and applied at once; the week stays locked. Audited under the HR person's name |
+| `POST /hr/users/{user_id}/weeks/{week_start}/send-back` | **Send back for re-approval.** Body: `reason` and optional `dates` (empty means every day with time). The week returns to `draft`; days not sent back stay approved and locked. The employee fixes the sent-back days and resubmits, and the manager approves them again. The reason shows in the week view (`day_reasons`) and in the approval's history |
+Telling the employee by notification waits for WH-60.
 
 ## Roles (who can do what)
 
