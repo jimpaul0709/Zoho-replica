@@ -12,7 +12,7 @@ Both jobs run from one repeating worker job, `approval_housekeeping`, every 15 m
 Every move is a single hop: an approval that was just delegated is not delegated back and forth.
 """
 
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, date, datetime, time, timedelta, timezone
 from typing import Any
 
 from sqlalchemy import select
@@ -26,6 +26,10 @@ HOUSEKEEPING = "approval_housekeeping"
 HOUSEKEEPING_EVERY = timedelta(minutes=15)
 DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 DEFAULT_DUE_DAYS = 2
+# shortcut: Ampera's offices are in India, so the deadline clock is IST (fixed UTC+5:30, no daylight
+# saving); upgrade to an org timezone setting when one exists.
+IST = timezone(timedelta(hours=5, minutes=30))
+WEEK_DEADLINE = time(18, 0)
 
 
 def org_settings(session: Session) -> OrgSettings | None:
@@ -76,6 +80,33 @@ def due_at_for(session: Session, requester: User, now: datetime | None = None) -
         requester.location_id,
         org.work_week_days if org else "Mon-Fri",
     )
+
+
+def week_due_at(
+    session: Session, requester: User, week_start: date, now: datetime | None = None
+) -> datetime:
+    """When a submitted week must be approved: 18:00 IST on the Monday after the week ends (the
+    next working day if that Monday is a day off or a holiday for the requester).
+
+    A week submitted after that moment keeps the old rule, 2 working days from now, so nothing is
+    overdue the instant it is submitted. Other late-submission cases are left for later."""
+    now = now or datetime.now(UTC)
+    org = org_settings(session)
+    weekdays = work_weekdays(org.work_week_days if org else "Mon-Fri")
+    holidays: set[date] = set()
+    if requester.location_id is not None:
+        holidays = set(
+            session.scalars(
+                select(Holiday.on_date).where(Holiday.location_id == requester.location_id)
+            )
+        )
+    day = week_start + timedelta(days=7)
+    while day.weekday() != 0:  # the first Monday after the week
+        day += timedelta(days=1)
+    while day.weekday() not in weekdays or day in holidays:
+        day += timedelta(days=1)
+    due = datetime.combine(day, WEEK_DEADLINE, tzinfo=IST).astimezone(UTC)
+    return due if due > now else due_at_for(session, requester, now)
 
 
 def active_delegate(session: Session, user_id: int, day: date) -> int | None:

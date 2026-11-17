@@ -1,4 +1,4 @@
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, date, datetime, time, timedelta
 
 from conftest import World, add, hdr, submit, week_json
 from sqlalchemy import select
@@ -7,9 +7,11 @@ from workhub_api import jobs
 from workhub_api.models import Approval, Holiday, Job, Location, RoleAssignment, User
 from workhub_api.routing import (
     HOUSEKEEPING,
+    IST,
     add_working_days,
     apply_delegations,
     escalate_overdue,
+    week_due_at,
     work_weekdays,
 )
 
@@ -181,3 +183,34 @@ def test_housekeeping_job_runs_and_schedules_itself_again(world: World) -> None:
     soon = datetime.now(UTC) + timedelta(minutes=14)
     waiting = s.scalars(select(Job).where(Job.kind == HOUSEKEEPING, Job.status == "queued")).all()
     assert any(j.id != first.id and j.run_at > soon for j in waiting)  # next run in ~15 minutes
+
+
+def test_a_week_is_due_monday_6pm_ist_after_it_ends_and_late_ones_keep_the_old_rule(
+    world: World,
+) -> None:
+    s = world.session
+    week = date(2026, 11, 2)  # a Monday
+    monday_6pm = datetime(2026, 11, 9, 12, 30, tzinfo=UTC)  # 18:00 IST
+    early = datetime(2026, 11, 3, 10, 0, tzinfo=UTC)
+    assert week_due_at(s, world.emp, week, now=early) == monday_6pm
+    on_the_day = datetime(2026, 11, 9, 12, 29, tzinfo=UTC)  # a minute before the deadline
+    assert week_due_at(s, world.emp, week, now=on_the_day) == monday_6pm
+    late = datetime(2026, 11, 10, 9, 0, tzinfo=UTC)  # after the deadline: 2 working days from now
+    assert week_due_at(s, world.emp, week, now=late) == datetime(2026, 11, 12, 9, 0, tzinfo=UTC)
+
+    place = Location(name="Monday-off place")  # that Monday is a holiday, so the next day
+    s.add(place)
+    s.flush()
+    s.add(Holiday(location_id=place.id, on_date=date(2026, 11, 9), name="Holiday"))
+    world.emp.location_id = place.id
+    s.flush()
+    assert week_due_at(s, world.emp, week, now=early) == datetime(2026, 11, 10, 12, 30, tzinfo=UTC)
+
+
+def test_submitting_this_week_sets_the_monday_deadline(world: World) -> None:
+    start = TODAY - timedelta(days=TODAY.weekday())
+    assert add(world, 60, day=TODAY) == 201
+    res = world.client.post(f"/time/weeks/{start}/submit", headers=hdr(world.emp))
+    assert res.status_code == 200
+    expected = datetime.combine(start + timedelta(days=7), time(18, 0), tzinfo=IST)
+    assert my_approval(world).due_at == expected

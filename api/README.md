@@ -57,8 +57,12 @@ Only weeks are supported so far. Delegation and escalation come with WH-32.
 | `DELETE /delegations/{id}` | Remove one you gave (approvals already moved stay with the delegate) |
 
 - New approvals go to the manager's delegate, if one is active. Pending approvals move when a delegation starts.
-- Every approval gets a due date, 2 working days out (`org_settings.approval_due_working_days`), skipping weekends and the requester's location holidays.
+- A submitted week is due **18:00 IST on the Monday after the week ends** (the next working day if that Monday is a day off or a holiday for the requester). A week submitted after that moment, and every other kind of approval (such as an edit request), is due 2 working days out (`org_settings.approval_due_working_days`), skipping weekends and the requester's location holidays. The other late-submission cases are left for later.
 - An approval past its due date moves up to the approver's manager. Notifying people is WH-60, so for now it is recorded in the approval history and audit log.
+
+## Checking Azure's certificate (optional, recommended for production)
+
+`POSTGRES_SSLMODE=require` encrypts the connection. To also check that the server really is Azure, download Microsoft's current root certificate file for Azure Database for PostgreSQL (from their documentation), then set `POSTGRES_SSLMODE=verify-full` and `POSTGRES_SSLROOTCERT=<path to that file>` in `.env`. Everyone who connects to the database does this on their own machine.
 
 ## Background worker (WH-07)
 
@@ -81,6 +85,16 @@ An approved week is locked. To change it, file an edit request: a reason and a l
 | `POST /approvals/{id}/send-back` | Rejects the request (the week is untouched). Needs a `reason`, and no `entry_ids` |
 
 The time rules (no future dates, 24 h a day, one task or charge code, charge codes shared with your team, leave and holiday entries read-only, changes inside that week) are checked when you file it and **again** when it is approved. If they no longer pass at approval, the approval fails with the reason, nothing is applied, and it stays pending.
+
+## HR correction of an approved week
+
+HR can also correct an approved week directly, with a required reason, instead of waiting for an edit request. The changes use the same format and the same time rules as an edit request, are applied at once, and the week stays locked. The audit log records the changes under the HR person's name, with the reason. HR can't correct their own week, and a week with a pending edit request is refused until that is resolved.
+
+| Call | What it does |
+|---|---|
+| `POST /hr/users/{user_id}/weeks/{week_start}/corrections` | HR role only. Body: `reason` and `changes` (add, update, delete, as for edit requests). Returns the corrected week |
+
+The other HR option, a notification that lets the employee edit the entry, waits for the notification work (WH-60).
 
 ## Roles (who can do what)
 
