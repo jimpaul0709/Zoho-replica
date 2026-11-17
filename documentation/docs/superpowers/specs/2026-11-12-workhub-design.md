@@ -128,6 +128,7 @@ All tables have `id`, `created_at` and `updated_at`. Time is stored as integer m
 ### 6.1 Organisation and people
 - HR and Admin manage users, locations, holidays, teams and roles.
 - Users sign in with Microsoft Entra ID. A user's first sign-in links to the `user` row whose email matches.
+  - **Update 17 Nov 2026:** Entra ID is version 2. Version 1 signs in with email and password. This replaces "no local passwords" (NFSD SEC-01) for version 1; the build scripts and the generated PRD, FSD and NFSD still say Entra only and need updating.
 - When someone leaves, `exited_on` is set and they're deactivated. Their history and payslips are kept.
 
 ### 6.2 Projects and tasks

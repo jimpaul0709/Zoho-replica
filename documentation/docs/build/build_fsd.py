@@ -14,7 +14,7 @@ M, S_, C_ = "Must", "Should", "Could"
 MODULES = [
     ("ACC", "Sign-in and access", "All users", ["An email maps to one user; deactivating a user keeps history.", "Access is denied unless a rule allows it."],
      ["Given an Employee, when they open a manager-only address, then they see not found and the attempt is logged.", "Given an exited user, when they sign in, then access is denied."],
-     [("Sign in with Microsoft Entra ID and match the work email to an active user", M, "S1", "WH-04", "Decision: Microsoft 365 is the identity provider"),
+     [("Sign in with email and password (version 1); Microsoft Entra ID sign-in, matching the work email to an active user, is version 2", M, "S1", "WH-04", "Decision 17 Nov: Entra ID is version 2"),
       ("Five roles (Employee, Manager, HR, Finance, Admin); a person may hold several", M, "S1", "WH-04", "PRD permission matrix"),
       ("The API enforces access by role, reporting line and project membership", M, "S1", "WH-04", "Zoho: blocked page behind a visible menu item"),
       ("Menus show only pages the role can open", M, "S1", "WH-05", "Zoho: Timesheets menu item showed Permission Denied"),

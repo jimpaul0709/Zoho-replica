@@ -14,6 +14,7 @@ from workhub_api.main import app
 from workhub_api.models import (
     ChargeCode,
     Project,
+    ProjectMember,
     RoleAssignment,
     Task,
     TaskList,
@@ -63,6 +64,9 @@ def world(monkeypatch: pytest.MonkeyPatch) -> Iterator[World]:
             RoleAssignment(user_id=boss.id, role="employee"),
             RoleAssignment(user_id=boss.id, role="manager"),
             RoleAssignment(user_id=emp.id, role="employee"),
+            ProjectMember(
+                project_id=project.id, user_id=emp.id
+            ),  # tasks are private to the project
         ]
     )
     s.flush()

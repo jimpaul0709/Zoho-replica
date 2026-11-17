@@ -61,7 +61,7 @@ BACKLOG = [
     I("WH-01", "Foundation", "Backend repo, CI, Docker Postgres, lint and test hooks", "JP", 1.0, 1, thin=True),
     I("WH-02", "Foundation", "Frontend repo (Bun, Vite), CI, generated API client", "JS", 1.0, 1, thin=True),
     I("WH-03", "Foundation", "Core database schema and migrations", "JP", 3.0, 1, thin=True),
-    I("WH-04", "Foundation", "Microsoft Entra ID sign-in, sessions, role middleware", "JK", 3.0, 1, thin=True),
+    I("WH-04", "Foundation", "Sign-in (version 1 email and password; Microsoft Entra ID is version 2), sessions, role middleware", "JK", 3.0, 1, thin=True),
     I("WH-05", "Foundation", "App shell and design system, login screen", "JS", 3.0, 1, thin=True),
     I("WH-06", "Foundation", "Audit log write path", "JK", 1.0, 1, thin=True),
     I("WH-07", "Foundation", "Job worker skeleton: queue, schedules, failed-jobs list", "JP", 1.0, 3),

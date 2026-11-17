@@ -24,7 +24,7 @@ It writes to whatever database `.env` points at, so on the shared Azure database
 
 ## Time API (WH-20)
 
-Sign-in is not built yet. Set `DEV_AUTH=true` in `.env`, then send `X-User-Id: <app_user id>` on each call.
+Real sign-in is not wired in yet. Plan: **version 1 signs in with email and password; version 2 moves to Microsoft Entra ID** (`entra_auth.py` is built but not wired in). Until then, set `DEV_AUTH=true` in `.env`, then send `X-User-Id: <app_user id>` on each call. That shortcut has no password, so it must never be on in production. `current_user` in `db.py` is the one function to replace.
 Interactive docs at http://localhost:8000/docs.
 
 | Call | What it does |

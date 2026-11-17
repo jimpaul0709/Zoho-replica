@@ -3,7 +3,7 @@ from datetime import UTC, date, datetime, timedelta
 from conftest import DAY, World, hdr
 from sqlalchemy import select
 
-from workhub_api.models import Approval, RoleAssignment, User
+from workhub_api.models import Approval, ProjectMember, RoleAssignment, TaskList, User
 
 
 def person(w: World, code: str, manager: User | None) -> User:
@@ -16,6 +16,11 @@ def person(w: World, code: str, manager: User | None) -> User:
     w.session.add(user)
     w.session.flush()
     w.session.add(RoleAssignment(user_id=user.id, role="manager"))  # people made here can approve
+    project_id = w.session.scalar(
+        select(TaskList.project_id).where(TaskList.id == w.task.task_list_id)
+    )
+    assert project_id is not None
+    w.session.add(ProjectMember(project_id=project_id, user_id=user.id))  # tasks are private
     w.session.flush()
     return user
 

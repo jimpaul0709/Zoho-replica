@@ -20,9 +20,11 @@ SessionDep = Annotated[Session, Depends(get_session)]
 
 
 def current_user(session: SessionDep, x_user_id: Annotated[int | None, Header()] = None) -> User:
-    """Who is calling. Temporary: a dev-only X-User-Id header until Entra sign-in (WH-04) lands.
+    """Who is calling. Temporary: a dev-only X-User-Id header, until real sign-in lands.
 
-    When WH-04 is done, replace the body of this function; every endpoint already depends on it.
+    Sign-in plan: version 1 signs in with email and password; version 2 moves to Microsoft Entra
+    ID (WH-04; entra_auth.py is built but not wired in). Either way, replace the body of this
+    function; every endpoint already depends on it.
     """
     if not settings.dev_auth:
         raise HTTPException(401, "Sign-in is not available yet (set DEV_AUTH=true for local dev)")

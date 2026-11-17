@@ -13,7 +13,7 @@ NM = lambda k: P.TEAM[k]["name"]
 fmt = lambda dt: f"{dt.day} {dt.strftime('%b')}"
 committed = [b for b in P.BACKLOG if b["tier"] == "M"]
 
-EXIT = {1: "All three can sign in with Microsoft, run the stack locally, and push through CI. Database migrations apply cleanly.",
+EXIT = {1: "All three can sign in (email and password; Microsoft comes in version 2), run the stack locally, and push through CI. Database migrations apply cleanly.",
         2: "Demo on Dec 1: sign in, see projects and tasks, log and submit a week, manager approves or sends back with a reason.",
         3: "Leave types and balances work; leave can be applied for; delegation, escalation and bulk approve work; org settings and work orders exist.",
         4: "Payslips upload, match and publish; leave approval fills the timesheet; team calendar; end-to-end tests pass. Feature freeze Dec 18.",

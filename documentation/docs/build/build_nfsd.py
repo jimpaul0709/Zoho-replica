@@ -30,7 +30,7 @@ NFR = [
         ("AVL-03", "Recovery", "Loss of at most 24 hours; restored within 4 hours", "Restore test before release", M),
         ("AVL-04", "Replica failure", "The other replica serves with no user action", "Failover test", M)]),
     ("SEC", "Security", "Controls follow the access flow in the Architecture document.", [
-        ("SEC-01", "Staff sign in with Microsoft Entra ID only", "No local passwords", "Configuration review", M),
+        ("SEC-01", "Version 1: staff sign in with email and password. Version 2: Microsoft Entra ID", "Passwords stored only as salted hashes, never in plain text; no shared accounts", "Configuration review", M),
         ("SEC-02", "Session lifetime", "60 minutes idle, 12 hours absolute", "Session test", M),
         ("SEC-03", "Access control", "Enforced in the API; deny by default; menus only hide", "Permission test sweep (WH-91)", M),
         ("SEC-04", "Payslip files", "Private storage; signed links that expire in 5 minutes", "Security review", M),

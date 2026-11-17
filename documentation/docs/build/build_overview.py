@@ -70,7 +70,7 @@ def fn(pages):
          ("Hand over and escalate approvals", "Approvals pass to a stand-in when someone is away, and to the next manager after two working days", "3", "Jim"),
          ("Bulk approve and approval trail", "Approve many at once; see who approved, when, and how long it took", "3", "Jim"),
          ("Reliable foundation", "The database, sample data, security checks and fix time before launch", "1, 4, 5", "Jim"),
-         ("Microsoft sign-in and roles", "Staff sign in with their work account; five roles decide what each person sees", "1", "Janagan"),
+         ("Sign-in and roles", "Staff sign in with email and password (Microsoft sign-in comes in version 2); five roles decide what each person sees", "1", "Janagan"),
          ("People, teams and settings", "Add people and teams; set holidays and the working week", "2-3", "Janagan"),
          ("Clients, projects and tasks", "Work orders, projects, tasks, and codes for non-project time such as training", "2-3", "Janagan"),
          ("Payslips", "HR uploads a month of payslips; each person sees only their own, hidden until clicked", "4", "Janagan"),

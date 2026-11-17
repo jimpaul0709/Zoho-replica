@@ -21,7 +21,7 @@ def fn(pages):
     d.table(["Goal or constraint", "Consequence for the architecture"],
             [["Replace Zoho Projects, People and Payroll for Ampera by Dec 24 with three people", "One codebase per tier, one database, no extra infrastructure unless needed"],
              ["Web only, no mobile app, no activity monitoring", "No desktop agent; no native clients"],
-             ["Microsoft 365 is the identity provider", "Entra ID sign-in; users match on work email"],
+             ["Sign-in: version 1 is email and password; version 2 is Microsoft Entra ID", "Version 1: users sign in with their work email and a password. Version 2: Entra ID sign-in, matched on work email"],
              ["Approved leave, holidays and timesheets must agree", "Leave module writes time entries in one transaction"],
              ["AI only suggests", "LLM is optional and never in the write path"],
              ["Hosting target not decided (Azure assumed)", "Containers and managed Postgres and storage; nothing cloud-specific in the code"]], [4.5, 4.5], size=10)

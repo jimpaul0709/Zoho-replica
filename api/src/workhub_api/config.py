@@ -17,7 +17,8 @@ class Settings(BaseSettings):
     postgres_db: str = "workhub"
     postgres_sslmode: str = "prefer"  # Azure needs "require"
 
-    # Temporary until Entra sign-in (WH-04): accept an X-User-Id header. Must be off in production.
+    # Temporary dev sign-in (v1 will be email + password, v2 Microsoft Entra ID): accept an
+    # X-User-Id header. Must be off in production.
     dev_auth: bool = False
 
     @property

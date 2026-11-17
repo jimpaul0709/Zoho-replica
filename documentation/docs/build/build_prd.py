@@ -100,7 +100,7 @@ def fn(pages):
         "logs a week, submits it, and a manager approves or sends it back with a reason. Leave, payslips and notifications follow in Sprints 3 to 5.")
 
     d.h("7. Feature Summary", 1)
-    feats = [("F1", "Sign-in and access", "Must", "S1", "Jayasree, Janagan", "Microsoft Entra ID sign-in, five roles, access scoped by reporting line and project"),
+    feats = [("F1", "Sign-in and access", "Must", "S1", "Jayasree, Janagan", "Email and password sign-in (Microsoft Entra ID in version 2), five roles, access scoped by reporting line and project"),
              ("F2", "Organisation and people", "Must", "S2-S3", "Janagan", "Users, teams, locations, holidays, work week, April-March year"),
              ("F3", "Projects and tasks", "Must", "S2-S3", "Janagan", "Client, work order, project, task keys, charge codes, statuses, comments"),
              ("F4", "Time capture", "Must", "S2", "Jim, Jayasree", "Week grid, billable flag, notes, no future dates, submit and lock"),

@@ -67,4 +67,4 @@ Run it: see `api/README.md`.
 | 14–18 Dec | WH-90 seed data and four end-to-end journeys, WH-91 security sweep |
 | 21–23 Dec | WH-94 buffer, release checks, basic load test |
 
-Others: Janagan owns sign-in (WH-04, needs the Entra ID app registration), org, projects, payslips and notifications. Jayasree owns the frontend repo, app shell, week grid, leave and accessibility. Full plan: `documentation/docs/WorkHub_Sprint_Plan_v0.1.docx`.
+Others: Janagan owns sign-in (WH-04: version 1 is email and password, version 2 is Microsoft Entra ID, which needs the app registration), org, projects, payslips and notifications. Jayasree owns the frontend repo, app shell, week grid, leave and accessibility. Full plan: `documentation/docs/WorkHub_Sprint_Plan_v0.1.docx`.

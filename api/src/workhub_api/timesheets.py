@@ -23,13 +23,13 @@ from workhub_api.models import (
     ChargeCode,
     ChargeCodeTeam,
     OrgSettings,
-    Task,
     TeamMember,
     TimeEntry,
     TimesheetWeek,
     User,
 )
 from workhub_api.routing import approver_for, due_at_for
+from workhub_api.visibility import can_see_task
 
 router = APIRouter(prefix="/time", tags=["time"])
 
@@ -129,8 +129,10 @@ def check_target(
 ) -> None:
     """The task must exist; a charge code must exist, be active and be shared with their team."""
     if task_id is not None:
-        if session.get(Task, task_id) is None:
-            raise HTTPException(422, "Unknown task")
+        if not can_see_task(
+            session, user, task_id
+        ):  # a private task looks the same as a missing one
+            raise HTTPException(422, "Unknown task, or it is not assigned to you")
         return
     code = session.get(ChargeCode, charge_code_id) if charge_code_id else None
     if code is None or not code.active:
