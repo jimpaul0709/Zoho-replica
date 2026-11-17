@@ -16,7 +16,9 @@ Conventions (apply to every table): `id` primary key, `created_at` and `updated_
 | 4. Notifications (WH-60) | Diagram 3, notification tables | 21–23 Dec |
 | Done: approval due days (WH-32) | Column `org_settings.approval_due_working_days` | migration 0002, 16 Nov |
 | Done: edit requests (WH-22) | Table `edit_request` | migration 0003, 16 Nov |
-| Done: per-day approval | Table `day_decision` | migration 0004, 16 Nov || Stretch / later | `running_timer`, `suggestion`, `anomaly`, `saved_view`, `project_template`, `status_report`, `integration_account`, `repo_link`, client portal tables | after Dec 24 |
+| Done: per-day approval | Table `day_decision` | migration 0004, 16 Nov |
+| Done: leave (WH-40/41) | Tables `leave_type`, `leave_balance`, `leave_request`, `blackout_day` | migration 0005, 17 Nov |
+| Stretch / later | `running_timer`, `suggestion`, `anomaly`, `saved_view`, `project_template`, `status_report`, `integration_account`, `repo_link`, client portal tables | after Dec 24 |
 
 ## Rules the database must enforce
 
@@ -286,10 +288,11 @@ erDiagram
   APP_USER ||--o{ COMP_OFF_REQUEST : earns
   LEAVE_TYPE {
     int id PK
-    string name
+    string name UK
     bool paid
-    int accrual_per_month
-    int carry_forward_cap
+    int charge_code_id FK "leave time entries are booked to it"
+    int accrual_per_month "stored as minutes, the API shows hours"
+    int carry_forward_cap "stored as minutes, the API shows hours"
     int attachment_after_days
   }
   LEAVE_BALANCE {
@@ -308,7 +311,8 @@ erDiagram
     int leave_type_id FK
     date from_date
     date to_date
-    json day_portions "full first_half second_half"
+    json day_portions "date to full, first_half or second_half"
+    int minutes "total, counted from the portions"
     text reason
     string attachment_key
     string status "applied approved rejected withdrawn cancelled"
@@ -324,8 +328,7 @@ erDiagram
   }
   BLACKOUT_DAY {
     int id PK
-    date on_date
-    string scope "org or team"
+    date on_date UK "organisation-wide; team scope comes later"
     text note
   }
   PAYSLIP_BATCH ||--o{ PAYSLIP : contains

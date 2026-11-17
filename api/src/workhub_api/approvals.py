@@ -2,7 +2,7 @@
 
 WH-30 built approve / send back / history, WH-33 added the deeper inbox: filters and sorting,
 each row's age, due date, level and trail (who acted, the comment, how long each step took), and
-bulk approve. Weeks and edit requests are handled; leave and comp-off plug in with their features.
+bulk approve. Weeks, edit requests and leave are handled (leave.py); comp-off plugs in later.
 Every action is an approval_step plus audit.
 
 A week can be decided as a whole or day by day (day_decisions.py): approving or sending back the
@@ -24,6 +24,7 @@ from workhub_api.audit import record, snapshot
 from workhub_api.day_decisions import decide, returned_reasons, settle, waiting_days
 from workhub_api.db import CurrentUser, SessionDep
 from workhub_api.edit_requests import apply_changes
+from workhub_api.leave import LeaveBrief, approve_leave, briefs, reject_leave
 from workhub_api.models import (
     Approval,
     ApprovalStep,
@@ -82,6 +83,7 @@ class InboxItem(BaseModel):
     week_start: date | None
     total_minutes: int
     days: list[DayOut]  # each day with time: its minutes and the manager's decision so far
+    leave: LeaveBrief | None = None  # set for leave approvals
     timeline: list[StepOut]
 
 
@@ -207,6 +209,8 @@ def inbox(
     for decision in session.scalars(select(DayDecision).where(DayDecision.week_id.in_(week_ids))):
         decided.setdefault(decision.week_id, {})[decision.work_date] = decision
     timelines = _timelines(session, [a.id for a in approvals])
+    leave_ids = [a.subject_id for a in approvals if a.subject_type == "leave"]
+    leave_briefs = briefs(session, leave_ids) if leave_ids else {}
 
     items: list[InboxItem] = []
     for a in approvals:
@@ -229,6 +233,7 @@ def inbox(
                 days=_days(minutes.get(week_id, {}), decided.get(week_id, {}))
                 if week_id is not None
                 else [],
+                leave=leave_briefs.get(a.subject_id) if a.subject_type == "leave" else None,
                 timeline=timelines.get(a.id, []),
             )
         )
@@ -354,6 +359,9 @@ def _approve(session: Session, user: User, approval_id: int) -> Approval:
         request.status = "approved"
         _log(session, user, approval, request, "approved", edit_before)
         return approval
+    if approval.subject_type == "leave":
+        approve_leave(session, user, approval)
+        return approval
     week = _week_of(session, approval)
     if not session.scalar(
         select(func.count()).select_from(TimeEntry).where(TimeEntry.week_id == week.id)
@@ -404,6 +412,12 @@ def send_back(approval_id: int, body: SendBack, session: SessionDep, user: Manag
         approval.reason = body.reason
         request.status = "rejected"  # the week stays locked and unchanged
         _log(session, user, approval, request, "sent_back", edit_before, comment=body.reason)
+        session.commit()
+        return approval
+    if approval.subject_type == "leave":
+        if body.entry_ids:
+            raise HTTPException(422, "Entries can't be pinned on a leave request")
+        reject_leave(session, user, approval, body.reason)
         session.commit()
         return approval
     week = _week_of(session, approval)

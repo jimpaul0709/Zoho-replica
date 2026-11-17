@@ -96,6 +96,28 @@ HR (the `hr` role) has two ways to fix an approved week, each with a required re
 | `POST /hr/users/{user_id}/weeks/{week_start}/send-back` | **Send back for re-approval.** Body: `reason` and optional `dates` (empty means every day with time). The week returns to `draft`; days not sent back stay approved and locked. The employee fixes the sent-back days and resubmits, and the manager approves them again. The reason shows in the week view (`day_reasons`) and in the approval's history |
 Telling the employee by notification waits for WH-60.
 
+## Leave (WH-40, WH-41)
+
+Amounts are in hours: a full day is `org_settings.daily_expected_minutes` (normally 8 h) and a half day half of it. They are stored as whole minutes, like time entries. The leave year starts in `fy_start_month` (April).
+
+| Call | What it does |
+|---|---|
+| `GET /leave/types` | The leave types (anyone signed in) |
+| `POST /leave/types` | **HR.** Create a type: `name`, `paid` (false means LOP, loss of pay), `charge_code_id` (the leave time entries are booked to it), `accrual_per_month` and `carry_forward_cap` in hours, `attachment_after_days` |
+| `PUT /leave/balances` | **HR.** Set `opening`, `accrued` or `adjusted` hours for a person, type and `leave_year` (only the fields you send change) |
+| `GET /leave/balances?year=` | Your balances: opening, accrued, adjusted, used, pending and `available`. HR can add `user_id` for anyone's |
+| `POST /leave/blackout-days`, `GET /leave/blackout-days` | **HR** adds a day nobody can take leave on (for example a release freeze or a year-end close); anyone can list them |
+| `POST /leave/requests` | Apply: `leave_type_id`, `from_date`, `to_date`, optional `half_days` (`{date: first_half or second_half}`), `reason`, `attachment_key`. Creates the approval for your manager |
+| `GET /leave/requests` | Your requests |
+| `POST /leave/requests/{id}/withdraw` | Take back a request nobody has decided yet |
+| `POST /leave/requests/{id}/cancel` | Cancel approved leave: gives the balance back and removes its time entries in one step |
+
+Rules checked when you apply: only working days count (weekends and your location's holidays are skipped), the range stays inside one leave year, no blackout day, no overlap with other leave (two different half days on one day are fine), a reason for LOP leave, an attachment when a type needs one for longer leave, and enough balance for paid types (counting requests that are still waiting). Leave for dates already past is allowed and flagged `applied_after_dates`.
+
+The manager decides it in the same inbox (`GET /approvals/inbox` rows have a `leave` summary). `POST /approvals/{id}/approve` deducts the balance and writes one read-only time entry (source `leave`) per day, in one transaction, and fails with 409 if the balance is gone or that week is already approved. `send-back` rejects it with a reason and changes nothing. Cancelling is refused when one of its weeks is already approved (HR has to correct that week).
+
+Not built yet: monthly accrual by the worker, year-end carry forward, comp-off, the team calendar, and the Zoho import.
+
 ## Roles (who can do what)
 
 Roles are employee, manager, hr, finance and admin, and a person can hold several. The API checks them (`permissions.py`); the UI only hides what a role can't open. No sign-in gets 401, a missing role gets 403.

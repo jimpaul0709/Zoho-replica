@@ -335,6 +335,67 @@ class DayDecision(Stamped, Base):
     decided_by: Mapped[int] = _fk("app_user.id")
 
 
+# ---------- 3. Leave (WH-40, WH-41). Minutes; a full day is daily_expected_minutes ----------
+
+
+class LeaveType(Stamped, Base):
+    __tablename__ = "leave_type"
+
+    name: Mapped[str] = mapped_column(String(100), unique=True)
+    paid: Mapped[bool] = mapped_column(Boolean, server_default=text("true"))
+    charge_code_id: Mapped[int] = _fk("charge_code.id")  # the time entries written on approval
+    accrual_per_month: Mapped[int] = mapped_column(Integer, server_default="0")
+    carry_forward_cap: Mapped[int] = mapped_column(Integer, server_default="0")
+    attachment_after_days: Mapped[int | None] = mapped_column(Integer)  # needs a file beyond this
+
+
+class LeaveBalance(Stamped, Base):
+    """available = opening + accrued + adjusted - used, for one person, type and leave year."""
+
+    __tablename__ = "leave_balance"
+    __table_args__ = (UniqueConstraint("user_id", "leave_type_id", "leave_year"),)
+
+    user_id: Mapped[int] = _fk("app_user.id")
+    leave_type_id: Mapped[int] = _fk("leave_type.id")
+    leave_year: Mapped[int] = mapped_column(Integer)  # the year the leave year starts in
+    opening: Mapped[int] = mapped_column(Integer, server_default="0")
+    accrued: Mapped[int] = mapped_column(Integer, server_default="0")
+    used: Mapped[int] = mapped_column(Integer, server_default="0")
+    adjusted: Mapped[int] = mapped_column(Integer, server_default="0")
+
+
+class LeaveRequest(Stamped, Base):
+    __tablename__ = "leave_request"
+    __table_args__ = (
+        CheckConstraint(
+            "status in ('applied','approved','rejected','withdrawn','cancelled')", name="status"
+        ),
+        CheckConstraint("from_date <= to_date", name="dates"),
+    )
+
+    user_id: Mapped[int] = _fk("app_user.id", index=True)
+    leave_type_id: Mapped[int] = _fk("leave_type.id")
+    from_date: Mapped[date] = mapped_column(Date)
+    to_date: Mapped[date] = mapped_column(Date)
+    day_portions: Mapped[dict[str, str]] = mapped_column(
+        JSONB
+    )  # date -> full/first_half/second_half
+    minutes: Mapped[int] = mapped_column(Integer)
+    reason: Mapped[str | None] = mapped_column(Text)
+    attachment_key: Mapped[str | None] = mapped_column(String(255))
+    status: Mapped[str] = mapped_column(String(20), server_default="applied")
+    applied_after_dates: Mapped[bool] = mapped_column(Boolean, server_default=text("false"))
+
+
+class BlackoutDay(Stamped, Base):
+    """A day nobody can take leave on (organisation-wide for now; team scope comes later)."""
+
+    __tablename__ = "blackout_day"
+
+    on_date: Mapped[date] = mapped_column(Date, unique=True)
+    note: Mapped[str] = mapped_column(Text)
+
+
 class AuditEvent(Base):
     """Append-only: a trigger in the migration rejects UPDATE and DELETE."""
 
