@@ -87,7 +87,7 @@ def fn(pages):
 
     d.h("7. How It Fits Together", 1)
     d.figure(A("diagrams", "workhub-context.png"), "WorkHub sits between our people and the services it connects to: Microsoft 365, Git, an AI helper and, once, Zoho.", 5.3)
-    d.bullets(["**What it is:** a web app people open in the browser, with their Microsoft work sign-in. (For the engineers: React, FastAPI and one Postgres database.)",
+    d.bullets(["**What it is:** a web app people open in the browser, with their email and password (Microsoft sign-in comes in version 2). (For the engineers: React, FastAPI and one Postgres database.)",
                "**One approval process** serves timesheets and leave. Approved leave fills the timesheet by itself, so the two can never disagree.",
                "**AI is optional and only suggests.** A person always confirms, and suggestions are private to the person they belong to.",
                "**Clients (optional add-on)** get their own sign-in and see only what is shared with them. It is off unless we turn it on."], size=11)
@@ -115,7 +115,7 @@ def fn(pages):
     d.h("10. Risks and Open Questions", 1)
     d.table(["Risk or question", "Chance", "What we do about it"],
             [[f"We have planned {pct(S['m'], S['cap'])} of our time; the first version has about {100 - round(100 * S['thin'] / S['thin_cap'])}% to spare", "High", "A list of what to drop first, a weekly progress check and a written fallback"],
-             ["Setting up Microsoft sign-in for the app is delayed", "Medium", "Ask IT on Nov 13; use a test setup meanwhile"],
+             ["Setting up Microsoft sign-in (version 2) is delayed", "Medium", "Ask IT on Nov 13; version 1 uses email and password meanwhile"],
              ["Where WorkHub will run (hosting) is not decided", "Medium", "Team lead decides by Nov 20"],
              ["We have only seen Zoho as an ordinary employee, not as an admin", "Medium", "Ask a Zoho admin to confirm plans and approval rules"],
              ["Payslip file names, holiday lists, leave rules and official document numbers", "Open", "HR and Compliance"]], [3.3, 0.8, 2.4], size=9)

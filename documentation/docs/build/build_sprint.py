@@ -73,7 +73,7 @@ def fn(pages):
     d.table(["ID", "Item", "Owner", "pd", "Sprint", "Planned finish"],
             [[b["id"], b["title"], NM(b["owner"]), f"{b['est']:g}", f"S{b['sprint']}", fmt(b["end"])] for b in thin], [0.7, 5.0, 1.0, 0.5, 0.7, 1.1], size=9.5)
     d.h("5.1 Demo script for Dec 1", 2)
-    d.bullets(["Sign in with a Microsoft work account and land on the app shell.", "An admin adds a user and a project member; the project and its tasks appear.",
+    d.bullets(["Sign in with email and password and land on the app shell.", "An admin adds a user and a project member; the project and its tasks appear.",
                "The employee opens this week, logs hours against two tasks and one charge code, and submits.", "The manager opens the approvals inbox and sends one week back with a reason.",
                "The employee sees the reason on the entry, fixes it and resubmits; the manager approves and the week locks."], numbered=True)
     d.callout("Fallback if Sprint 1 slips by more than 1 pd",

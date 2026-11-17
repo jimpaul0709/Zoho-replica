@@ -59,7 +59,7 @@ def fn(pages):
              ["Admin", "Platform administrators", "When someone joins or leaves, I want roles, teams and calendars set once, so access stays correct."],
              ["Client user", "Customer staff (optional add-on)", "When I want progress, I want a read-only view of my project, so I stop asking for status emails."]],
             [1.0, 1.8, 3.7], size=9.5)
-    d.p("**Not for:** staff without an Ampera Microsoft 365 account (except client users), and mobile-only use. There is no mobile app in scope.")
+    d.p("**Not for:** people outside Ampera (except client users), and mobile-only use. There is no mobile app in scope.")
     d.h("4.1 Permission matrix", 2)
     Y, N = "Yes", "-"
     d.table(["Action", "Employee", "Manager", "HR", "Finance", "Admin"],
@@ -71,7 +71,7 @@ def fn(pages):
     d.note("Admins cannot read payslip contents unless they also hold the HR role. Suggestions and their evidence are visible only to their owner.")
 
     d.h("5. Proposed Solution", 1)
-    d.p("One web application with a Python API and worker, one Postgres database, and Microsoft 365 sign-in. Approved leave and holidays fill the "
+    d.p("One web application with a Python API and worker, one Postgres database, and email and password sign-in (Microsoft Entra ID in version 2). Approved leave and holidays fill the "
         "timesheet automatically, so the apps can never disagree. One approvals inbox covers timesheets and leave, with a visible trail, delegation "
         "and escalation. Payslips are uploaded as PDFs by HR and shown masked to each employee.")
     d.callout("Key hypothesis",
@@ -96,7 +96,7 @@ def fn(pages):
             [1.1, 3.9, 1.5], size=9.5)
     d.figure(A("charts", "module_stack.png"), "Effort by module and tier (person-days).", 6.0)
     d.h("6.1 MVP and the Dec 1 slice", 2)
-    d.p(f"The Dec 1 slice is a thin vertical cut ({S['thin']:g} pd of {S['thin_cap']:g} pd available): a person signs in with Microsoft, sees projects and tasks, "
+    d.p(f"The Dec 1 slice is a thin vertical cut ({S['thin']:g} pd of {S['thin_cap']:g} pd available): a person signs in (email and password), sees projects and tasks, "
         "logs a week, submits it, and a manager approves or sends it back with a reason. Leave, payslips and notifications follow in Sprints 3 to 5.")
 
     d.h("7. Feature Summary", 1)
@@ -131,10 +131,10 @@ def fn(pages):
 
     d.h("10. Technical Approach and Risks", 1)
     d.p("**Feasibility:** technology risk is low and schedule risk is medium. The stack is a React web app on Bun, a FastAPI API and worker on uv, "
-        "Postgres, S3-compatible file storage and Microsoft 365 sign-in. The Architecture document has the detail.")
+        "Postgres, S3-compatible file storage and email and password sign-in (Microsoft Entra ID in version 2). The Architecture document has the detail.")
     d.table(["Risk", "Likelihood", "Mitigation"],
             [["Capacity is 91% committed", "High", "Cut line and stretch order in the Sprint Plan; weekly burn-up check"],
-             ["Entra ID app registration or consent is delayed", "Medium", "Request registration on day 1; use a test tenant if needed"],
+             ["Entra ID app registration or consent is delayed (version 2)", "Medium", "Version 1 uses email and password, so this no longer blocks Dec 1; request registration early for version 2"],
              ["Hosting target not decided", "Medium", "Decide by Nov 20; deployment work is sized for one environment"],
              ["Admin-side Zoho behaviour unknown", "Medium", "Ask a Zoho admin to confirm plan tiers and approval rules"],
              ["Payslip PDFs are sensitive", "Low", "Private storage, signed links, audit on every download"]],
@@ -154,7 +154,7 @@ def fn(pages):
 
     d.h("12. Open Questions", 1)
     d.table(["Question", "Owner", "Needed by"],
-            [["Which hosting target (Azure assumed)?", "Team lead", "Nov 20"], ["Who registers the Entra ID app and grants consent?", "IT admin", "Nov 13"],
+            [["Which hosting target (Azure assumed)?", "Team lead", "Nov 20"], ["Who registers the Entra ID app and grants consent (version 2)?", "IT admin", "Nov 13"],
              ["Payslip file naming: can employee code be in the filename?", "HR", "Nov 27"], ["Holiday lists per location and any working Saturdays?", "HR", "Nov 27"],
              ["Approval chain beyond the direct manager?", "Delivery head", "Nov 27"], ["Zoho admin export for baseline metrics?", "Zoho admin", "Nov 20"],
              ["Final document numbers for the six documents?", "Compliance", "Before review"]],

@@ -28,7 +28,7 @@ def fn(pages):
 
     d.h("3. System Context", 1)
     d.figure(D("context"), "WorkHub in its surroundings: people on the left, external services on the right.", 7.6)
-    d.p("People reach WorkHub through the browser with a Microsoft sign-in. WorkHub calls out to Microsoft 365, GitHub or GitLab and an LLM service; Zoho is read once for import. "
+    d.p("People reach WorkHub through the browser with an email and password sign-in (Microsoft sign-in comes in version 2). WorkHub calls out to Microsoft 365, GitHub or GitLab and an LLM service; Zoho is read once for import. "
         "Client users are an optional add-on with their own sign-in.", align="left")
 
     d.h("4. Containers", 1)
@@ -62,13 +62,13 @@ def fn(pages):
     d.h("8. Security Architecture", 1)
     d.figure(D("access"), "Every request: sign in, match an active user, load roles, check the record.", 4.6)
     d.table(["Control", "How"],
-            [["Authentication", "Microsoft Entra ID (OIDC); client users use a separate email link sign-in"], ["Authorisation", "Roles and reporting line in the API; menu hides, API enforces"],
+            [["Authentication", "Version 1: email and password (hashed, never stored in plain text). Version 2: Microsoft Entra ID (OIDC). Client users use a separate email link sign-in"], ["Authorisation", "Roles and reporting line in the API; menu hides, API enforces"],
              ["Data at rest", "Encrypted managed Postgres and storage; integration tokens encrypted"], ["Data in transit", "TLS everywhere, including to Postgres"],
              ["Files", "Private bucket, signed links that expire, content-type checks on upload"], ["Audit", "Every change and every payslip view or download"]], [2.0, 7.0], size=10)
 
     d.h("9. Integrations", 1)
     d.table(["Service", "Purpose", "Access", "If it fails"],
-            [["Microsoft Entra ID", "Sign-in", "OIDC, tenant app registration", "No sign-in; status banner"],
+            [["Microsoft Entra ID (version 2)", "Sign-in", "OIDC, tenant app registration", "No Entra sign-in; password sign-in still works; status banner"],
              ["Outlook calendar (later)", "Suggestions", "Read-only, per-user consent", "No suggestions; logging time still works"],
              ["Teams (stretch)", "Notices", "Incoming webhook or bot", "In-app notice remains"],
              ["GitHub and GitLab (later)", "Suggestions", "OAuth per user", "No suggestions"],
@@ -91,7 +91,7 @@ def fn(pages):
     d.table(["Failure", "Effect", "Handling"],
             [["Worker is down", "No reminders or notices", "Jobs queue in Postgres and run on restart; failed-jobs list for admins"],
              ["Postgres is down", "Application unavailable", "Managed service with backups; status page"],
-             ["Entra ID unavailable", "No new sign-ins", "Existing sessions continue until expiry"],
+             ["Entra ID unavailable (version 2)", "No new Entra sign-ins; password sign-in still works", "Existing sessions continue until expiry"],
              ["Integration token expired", "Suggestions stop for that user", "Reconnect banner; time logging unaffected"]], [2.2, 2.6, 4.2], size=10)
 
     d.h("13. Decision Summary", 1)

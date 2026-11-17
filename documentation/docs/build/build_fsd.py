@@ -125,7 +125,7 @@ def fn(pages):
              ["LWP", "Leave without pay"], ["Week", "A user's timesheet for seven days, starting on the day set in org settings"],
              ["Slice", "The Dec 1 thin vertical cut of the product"]], [1.5, 5.0], size=10)
     d.h("2.5 Risks and assumptions", 2)
-    d.bullets(["Assumed: Ampera staff have Microsoft 365 accounts; the Entra ID app registration is granted.", "Assumed: payslip PDF file names carry the employee code.",
+    d.bullets(["Assumed for version 2: Ampera staff have Microsoft 365 accounts and the Entra ID app registration is granted. Version 1 (email and password) does not need it.", "Assumed: payslip PDF file names carry the employee code.",
                "Assumed: one approval level (the direct manager) for v1.", "Risk: scope is larger than capacity; see the Sprint Plan cut line."], size=11)
 
     d.h("3. System Overview", 1)
@@ -139,7 +139,7 @@ def fn(pages):
              ["HR", "Leave setup, balances, payslip batches", "Weekly to monthly"], ["Finance", "Reports and the LWP export", "Monthly"],
              ["Admin", "Users, roles, integrations, audit", "Occasionally"], ["Client user (add-on)", "Read shared progress and reports", "Weekly"]], [1.5, 3.7, 1.3], size=10)
     d.h("3.3 Dependencies", 2)
-    d.table(["Dependency", "Needed for"], [["Microsoft Entra ID app registration", "Sign-in (S1)"], ["Hosting target and managed Postgres", "Shared dev and production (S3)"],
+    d.table(["Dependency", "Needed for"], [["Microsoft Entra ID app registration", "Microsoft sign-in (version 2)"], ["Hosting target and managed Postgres", "Shared dev and production (S3)"],
                                             ["HR holiday lists and leave policy", "Org settings and leave types (S3)"], ["Payslip PDF naming rule", "Payslip upload (S4)"]], [3.5, 3.0], size=10)
 
     d.h("4. Functional Specifications", 1)
@@ -172,7 +172,7 @@ def fn(pages):
 
     d.h("7. Integration Requirements", 1)
     d.table(["Integration", "Requirement"],
-            [["Microsoft Entra ID", "Sign-in with OIDC; match on work email"], ["Outlook calendar (later)", "Read-only, per-user consent"], ["Teams (stretch)", "Approval and reminder messages"],
+            [["Microsoft Entra ID (version 2)", "Sign-in with OIDC; match on work email"], ["Outlook calendar (later)", "Read-only, per-user consent"], ["Teams (stretch)", "Approval and reminder messages"],
              ["GitHub and GitLab (later)", "OAuth per user; repositories mapped to projects"], ["LLM service (later)", "Optional text help only; rules decide first"]], [2.2, 4.3], size=10)
     d.h("7.1 Exception handling", 2)
     d.p("An integration failure never stops a user logging time. The user sees a reconnect notice; the job retries three times with backoff and then appears in the admin failed-jobs list.")
@@ -183,7 +183,7 @@ def fn(pages):
     d.h("9. Non-Functional Requirements", 1)
     d.p("Performance, security, privacy, accessibility and operations are specified in the NFSD (AMP_WH_NFSD_001).")
     d.h("10. Open Issues", 1)
-    d.table(["Issue", "Owner"], [["Hosting target", "Team lead"], ["Entra ID registration owner", "IT admin"], ["Leave policy details (accrual, carry-forward caps)", "HR"],
+    d.table(["Issue", "Owner"], [["Hosting target", "Team lead"], ["Entra ID registration owner (version 2)", "IT admin"], ["Leave policy details (accrual, carry-forward caps)", "HR"],
                                   ["Final document numbers", "Compliance"]], [4.5, 2.0], size=10)
 
     d.h("11. Requirement Summary", 1)
