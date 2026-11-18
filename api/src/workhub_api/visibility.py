@@ -55,6 +55,34 @@ def can_see_project(session: Session, user: User, project_id: int) -> bool:
     return bool(visibility == "public" or manager or admin or member)
 
 
+def visible_tasks(session: Session, user: User) -> list[tuple[int, str, str, str, str]]:
+    """Every task `user` can see, in one query: (id, key, title, project key, project name).
+
+    Same rules as can_see_task (tests keep the two in step); use this for lists, because one
+    check per task costs one database round trip each.
+    """
+    mine = select(TeamMember.team_id).where(TeamMember.user_id == user.id)
+    assigned = exists().where(TaskOwner.task_id == Task.id)
+    assigned_to_me = exists().where(
+        TaskOwner.task_id == Task.id, or_(TaskOwner.user_id == user.id, TaskOwner.team_id.in_(mine))
+    )
+    rows = session.execute(
+        select(Task.id, Task.key, Task.title, Project.key, Project.name)
+        .join(TaskList, TaskList.id == Task.task_list_id)
+        .join(Project, Project.id == TaskList.project_id)
+        .where(
+            or_(
+                Project.manager_id == user.id,
+                _admin(user.id),
+                assigned & assigned_to_me,
+                ~assigned & _member(user.id),
+            )
+        )
+        .order_by(Project.key, Task.key)
+    )
+    return [(r[0], r[1], r[2], r[3], r[4]) for r in rows]
+
+
 def can_see_task(session: Session, user: User, task_id: int) -> bool:
     mine = select(TeamMember.team_id).where(TeamMember.user_id == user.id)
     row = session.execute(

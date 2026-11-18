@@ -19,16 +19,32 @@ uv run uvicorn workhub_api.main:app --reload   # http://localhost:8000/health
 uv run python -m workhub_api.seed   # Jay, Jana, Jim (chain Jim -> Jana -> Jay), 3 teams, 1 project
 ```
 
-It prints each person's id to use as `X-User-Id`. Safe to run twice (it skips if already there).
-It writes to whatever database `.env` points at, so on the shared Azure database run it once.
+It also gives everyone without a password the dev password `workhub-dev-1` (sign in as `jim@example.com`, `jana@example.com` or `jay@example.com`) and adds four sample leave types (Earned, Casual, Sick, LWP) with a "Leave" charge code. The leave numbers are placeholders; HR sets the real policy with `POST /leave/types`.
+Safe to run twice: each part skips what is already there. It writes to whatever database `.env` points at.
 
-## Time API (WH-20)
+## Sign-in (WH-04, version 1: email and password)
 
-Real sign-in is not wired in yet. Plan: **version 1 signs in with email and password; version 2 moves to Microsoft Entra ID** (`entra_auth.py` is built but not wired in). Until then, set `DEV_AUTH=true` in `.env`, then send `X-User-Id: <app_user id>` on each call. That shortcut has no password, so it must never be on in production. `current_user` in `db.py` is the one function to replace.
-Interactive docs at http://localhost:8000/docs.
+Version 2 moves to Microsoft Entra ID (`entra_auth.py` is built but not wired in).
 
 | Call | What it does |
 |---|---|
+| `POST /auth/login` | Body `email` and `password` (email ignores case). Returns `token` and `expires_at`. Wrong email and wrong password give the same 401. Five wrong passwords lock that account for 15 minutes (429) |
+| `GET /auth/me` | Who the token belongs to: `id`, `name`, `email`, `roles` |
+| `POST /auth/password` | Change your own password (`current_password`, `new_password` of 8+ characters). Signs your other browsers out |
+| `POST /auth/logout` | Ends this session |
+
+Send the token on every other call as `Authorization: Bearer <token>`. A session lasts 7 days, and only a hash of the token is stored. A user with no `credential` row, or who is not `active`, cannot sign in. There is no way yet for HR to create users or set passwords except the seed script.
+
+`DEV_AUTH=true` (in `.env`, or set by the tests) also accepts `X-User-Id: <app_user id>` with no password. It must be off in production. `current_user` in `db.py` is the one function every endpoint depends on.
+The web app's address for CORS is `WEB_ORIGIN` (default `http://localhost:5173`). Interactive docs at http://localhost:8000/docs.
+
+Known limits: the lockout is per account, not per IP (add an IP limit at the proxy before going public), and there is no password reset by email.
+
+## Time API (WH-20)
+
+| Call | What it does |
+|---|---|
+| `GET /time/targets` | What the week grid can log time on: the tasks you can see (with their project) and the active charge codes shared with your team |
 | `GET /time/week?on=YYYY-MM-DD` | The week's entries, status, per-day minutes, each day's status (`draft`, `submitted`, `approved`, `sent_back`), why a day was sent back and the approved minutes |
 | `POST /time/entries` | Add an entry (one task or one charge code) |
 | `PATCH /time/entries/{id}`, `DELETE /time/entries/{id}` | Change or remove an entry (until the week is approved) |

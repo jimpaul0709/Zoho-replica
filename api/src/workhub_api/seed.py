@@ -16,10 +16,11 @@ from sqlalchemy.orm import Session
 from workhub_api.auth import hash_password
 from workhub_api.models import (
     ChargeCode,
-    Credential,
     ChargeCodeTeam,
     Client,
+    Credential,
     Holiday,
+    LeaveType,
     Location,
     OrgSettings,
     Project,
@@ -110,6 +111,40 @@ def seed(session: Session) -> bool:
     return True
 
 
+# (name, paid, accrual per month in minutes, carry-forward cap, attachment needed after N days)
+# Placeholder numbers for development; HR sets the real policy. A full day is 480 minutes.
+LEAVE_TYPES = [
+    ("Earned", True, 600, 4800, None),
+    ("Casual", True, 240, 0, None),
+    ("Sick", True, 0, 0, 2),
+    ("LWP", False, 0, 0, None),
+]
+
+
+def ensure_leave_types(session: Session) -> int:
+    """Add the sample leave types (and the 'Leave' charge code their time entries use)."""
+    code = session.scalar(select(ChargeCode).where(ChargeCode.code == "Leave"))
+    if code is None:
+        code = ChargeCode(code="Leave", name="Leave")
+        session.add(code)
+        session.flush()
+    have = set(session.scalars(select(LeaveType.name)))
+    new = [
+        LeaveType(
+            name=n,
+            paid=paid,
+            charge_code_id=code.id,
+            accrual_per_month=acc,
+            carry_forward_cap=cap,
+            attachment_after_days=att,
+        )
+        for n, paid, acc, cap, att in LEAVE_TYPES
+        if n not in have
+    ]
+    session.add_all(new)
+    return len(new)
+
+
 DEV_PASSWORD = "workhub-dev-1"  # sample users only; real accounts get their own from HR
 
 
@@ -132,6 +167,8 @@ if __name__ == "__main__":
             print("Seeded sample data.")
         else:
             print("Sample data is already there.")
+        types = ensure_leave_types(s)
+        print(f"Added {types} leave type(s).")
         added = ensure_passwords(s)
         s.commit()
         print(f"Set the dev password on {added} user(s). Sign in with email + '{DEV_PASSWORD}':")

@@ -29,7 +29,7 @@ from workhub_api.models import (
     User,
 )
 from workhub_api.routing import approver_for, week_due_at
-from workhub_api.visibility import can_see_task
+from workhub_api.visibility import can_see_task, visible_tasks
 
 router = APIRouter(prefix="/time", tags=["time"])
 
@@ -165,6 +165,49 @@ def _audit(session: Session, user: User, entity: str, row: Any, action: str, bef
         action=action,
         before=before,
         after=None if action == "deleted" else snapshot(row),
+    )
+
+
+class TaskTarget(BaseModel):
+    id: int
+    key: str
+    title: str
+    project_key: str
+    project_name: str
+
+
+class ChargeCodeTarget(BaseModel):
+    id: int
+    code: str
+    name: str
+
+
+class TargetsOut(BaseModel):
+    tasks: list[TaskTarget]
+    charge_codes: list[ChargeCodeTarget]
+
+
+@router.get("/targets", response_model=TargetsOut)
+def get_targets(session: SessionDep, user: CurrentUser) -> TargetsOut:
+    """What the week grid can log time on: tasks you can see, charge codes shared with you."""
+    codes = session.execute(
+        select(ChargeCode.id, ChargeCode.code, ChargeCode.name)
+        .where(
+            ChargeCode.active.is_(True),
+            ChargeCode.id.in_(
+                select(ChargeCodeTeam.charge_code_id)
+                .join(TeamMember, TeamMember.team_id == ChargeCodeTeam.team_id)
+                .where(TeamMember.user_id == user.id)
+            ),
+        )
+        .order_by(ChargeCode.code)
+    )
+    return TargetsOut(
+        tasks=[
+            TaskTarget(id=i, key=k, title=t, project_key=pk, project_name=pn)
+            for i, k, t, pk, pn in visible_tasks(session, user)
+        ],
+        charge_codes=[ChargeCodeTarget(id=i, code=c, name=n) for i, c, n in codes],
     )
 
 
