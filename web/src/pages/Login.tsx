@@ -15,7 +15,7 @@ export default function Login({ onSignedIn }: { onSignedIn: (me: S['MeOut']) => 
     try {
       token.set((await post<S['LoginOut']>('/auth/login', { email, password })).token)
       onSignedIn(await get<S['MeOut']>('/auth/me'))
-      if (!location.hash) location.hash = 'week'
+      if (!location.hash || location.hash === '#login') location.hash = 'week'
     } catch (err) {
       token.clear()
       setError((err as Error).message)
@@ -38,7 +38,7 @@ export default function Login({ onSignedIn }: { onSignedIn: (me: S['MeOut']) => 
             <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" required autoFocus /></label>
           <label className="field"><span>Password</span>
             <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required /></label>
-          <button className="btn primary" type="submit" disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</button>
+          <button className="btn primary" type="submit" disabled={busy} aria-busy={busy}>{busy ? 'Signing in…' : 'Sign in'}</button>
           <div className="hint">No account or forgot your password? HR sets and resets passwords.</div>
         </form>
       </div>

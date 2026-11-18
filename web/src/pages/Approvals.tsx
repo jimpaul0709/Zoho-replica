@@ -60,14 +60,14 @@ export default function Approvals() {
         <div className="card scroll">
           {tab === 'time' && (
             <div className="row">
-              <button type="button" className="btn sm" disabled={!picked.length} onClick={bulk}>Approve selected ({picked.length})</button>
+              <button type="button" className="btn primary sm" disabled={!picked.length} onClick={bulk}>Approve selected ({picked.length})</button>
             </div>
           )}
           {items.length === 0 ? (
             <Empty title="Nothing waiting for you" hint="Weeks and leave requests from your team show up here once they are submitted." />
           ) : (
             <table>
-              <thead><tr>{tab === 'time' && <th />}<th>Employee</th><th>{tab === 'time' ? 'Week' : 'Dates'}</th><th className="num">Hours</th><th>Submitted</th><th /></tr></thead>
+              <thead><tr>{tab === 'time' && <th><input type="checkbox" aria-label="Select all" checked={picked.length === items.length} onChange={(e) => setPicked(e.target.checked ? items.map((i) => i.approval_id) : [])} /></th>}<th>Employee</th><th>{tab === 'time' ? 'Week' : 'Dates'}</th><th className="num">Hours</th><th>Submitted</th><th /></tr></thead>
               <tbody>
                 {items.map((i) => (
                   <tr key={i.approval_id}>
@@ -175,7 +175,7 @@ function Delegations() {
         <label className="field"><span>From</span><input id="deleg-from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></label>
         <label className="field"><span>Until</span><input id="deleg-until" type="date" value={until} onChange={(e) => setUntil(e.target.value)} /></label>
       </div>
-      <div><button type="button" className="btn" disabled={!to || !from || !until} onClick={add}>Save delegation</button></div>
+      <div><button type="button" className="btn primary" disabled={!to || !from || !until} onClick={add}>Save delegation</button></div>
     </div>
   )
 }

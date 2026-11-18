@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { api, get, post, addDays, fmtDay, fmtRange, iso, mondayOf, toHours, toMinutes, type S } from '../api'
-import { Banner, Chip, Loading, useLoad } from '../ui'
+import { Banner, Chip, Loading, Select, useLoad } from '../ui'
 import EditRequests from './EditRequests'
 
 type Entry = S['EntryOut']
@@ -206,10 +206,8 @@ export default function Week() {
           )}
 
           <div className="actions">
-            <select aria-label="Add a task or charge code" value={pick} onChange={(e) => setPick(e.target.value)} style={{ width: 'auto', maxWidth: 360 }}>
-              <option value="">+ Add task or charge code…</option>
-              {options.map(([k, text]) => <option key={k} value={k}>{text}</option>)}
-            </select>
+            <Select id="add-row" ariaLabel="Add a task or charge code" className="inline" placeholder="+ Add task or charge code…"
+              value={pick} onChange={setPick} options={options.map(([k, text]) => ({ value: k, label: text }))} />
             <button type="button" className="btn" disabled={!pick} onClick={() => { setExtra([...extra, pick]); setPick('') }}>Add row</button>
             <span className="spacer" />
             {(wk.status === 'draft' || wk.status === 'sent_back') && (

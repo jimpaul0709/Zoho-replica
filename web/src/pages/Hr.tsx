@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { get, post, api, addDays, iso, mondayOf, type S } from '../api'
-import { Banner, Loading, UserSelect, useLoad } from '../ui'
+import { Banner, Loading, Select, UserSelect, useLoad } from '../ui'
 
 type Msg = { kind: 'ok' | 'bad'; text: string } | undefined
 
@@ -140,11 +140,8 @@ function LeaveSetup() {
         <h3>Leave types</h3>
         {(types.data ?? []).map((x) => <div key={x.id}>{x.name}{x.paid === false ? ' (unpaid)' : ''}</div>)}
         <label className="field"><span>Name</span><input id="lt-name" type="text" value={t.name} onChange={(e) => setT({ ...t, name: e.target.value })} /></label>
-        <label className="field"><span>Charge code for this leave</span>
-          <select id="lt-code" value={t.charge_code_id} onChange={(e) => setT({ ...t, charge_code_id: e.target.value })}>
-            <option value="">Choose…</option>
-            {(targets.data?.charge_codes ?? []).map((c) => <option key={c.id} value={c.id}>{c.code} · {c.name}</option>)}
-          </select></label>
+        <Select id="lt-code" label="Charge code for this leave" value={t.charge_code_id} onChange={(v) => setT({ ...t, charge_code_id: v })}
+          options={(targets.data?.charge_codes ?? []).map((c) => ({ value: String(c.id), label: c.code, sub: c.name }))} />
         <div className="grid3">
           <label className="field"><span>Hours added per month</span><input id="lt-accrual" type="text" inputMode="decimal" value={t.accrual} onChange={(e) => setT({ ...t, accrual: e.target.value })} /></label>
           <label className="field"><span>Carry forward cap (hours)</span><input id="lt-cap" type="text" inputMode="decimal" value={t.cap} onChange={(e) => setT({ ...t, cap: e.target.value })} /></label>
@@ -160,11 +157,8 @@ function LeaveSetup() {
       <div className="card">
         <h3>Opening balance ({year})</h3>
         <UserSelect id="bal-user" label="Employee" value={b.user_id} onChange={(v) => setB({ ...b, user_id: v })} />
-        <label className="field"><span>Leave type</span>
-          <select id="bal-type" value={b.leave_type_id} onChange={(e) => setB({ ...b, leave_type_id: e.target.value })}>
-            <option value="">Choose…</option>
-            {(types.data ?? []).map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
-          </select></label>
+        <Select id="bal-type" label="Leave type" value={b.leave_type_id} onChange={(v) => setB({ ...b, leave_type_id: v })}
+          options={(types.data ?? []).map((x) => ({ value: String(x.id), label: x.name }))} />
         <label className="field"><span>Opening hours (8 hours = 1 day)</span><input id="bal-days" type="text" inputMode="decimal" value={b.opening} onChange={(e) => setB({ ...b, opening: e.target.value })} /></label>
         <div><button type="button" className="btn primary" disabled={!b.user_id || !b.leave_type_id || b.opening === ''}
           onClick={() => run(() => api('PUT', '/leave/balances', { user_id: Number(b.user_id), leave_type_id: Number(b.leave_type_id), leave_year: year, opening: Number(b.opening) }), 'Balance saved')}>Save balance</button></div>

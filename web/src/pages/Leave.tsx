@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { get, post, fmtRange, type S } from '../api'
-import { Banner, Chip, Empty, Loading, useLoad } from '../ui'
+import { Banner, Chip, Empty, Loading, Select, useLoad } from '../ui'
 
 export default function Leave() {
   const year = new Date().getFullYear()
@@ -59,11 +59,8 @@ export default function Leave() {
         <form className="card" onSubmit={apply}>
           <h3>Apply for leave</h3>
           {msg && <Banner kind={msg.kind}>{msg.text}</Banner>}
-          <label className="field"><span>Leave type</span>
-            <select id="leave-type" value={typeId} onChange={(e) => setTypeId(e.target.value)} required>
-              <option value="">Choose…</option>
-              {(types.data ?? []).map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-            </select></label>
+          <Select id="leave-type" label="Leave type" value={typeId} onChange={setTypeId} required
+            options={(types.data ?? []).map((t) => ({ value: String(t.id), label: t.name }))} />
           <div className="grid2" style={{ gap: 10 }}>
             <label className="field"><span>From</span><input id="leave-from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} required /></label>
             <label className="field"><span>To</span><input id="leave-to" type="date" value={to} min={from} onChange={(e) => setTo(e.target.value)} /></label>

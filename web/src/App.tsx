@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { get, post, token, type S } from './api'
-import { initials, useHash } from './ui'
+import { initials, useDismiss, useHash } from './ui'
+import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Password from './pages/Password'
 import Week from './pages/Week'
@@ -31,10 +32,35 @@ const PAGES: Record<string, () => React.ReactNode> = {
   password: () => <Password />,
 }
 
+// Avatar button that opens account actions (replaces two loose buttons in the top bar).
+function AccountMenu({ name, roles, onSignOut }: { name: string; roles: string[]; onSignOut: () => void }) {
+  const [open, setOpen] = useState(false)
+  const root = useRef<HTMLDivElement>(null)
+  const close = useCallback(() => setOpen(false), [])
+  useDismiss(root, open, close)
+  return (
+    <div className="acct" ref={root} onKeyDown={(e) => { if (e.key === 'Escape') setOpen(false) }}>
+      <button type="button" className="acct-btn" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)}>
+        <span className="avatar">{initials(name)}</span>
+        <span className="acct-name">{name}</span>
+        <svg className="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+      </button>
+      {open && (
+        <div className="menu-pop" role="menu">
+          <div className="menu-head"><b>{name}</b><span className="hint">{roles.join(', ')}</span></div>
+          <a role="menuitem" href="#password" onClick={close}>Change password</a>
+          <button type="button" role="menuitem" onClick={onSignOut}>Sign out</button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function App() {
   const [me, setMe] = useState<S['MeOut'] | null>(null)
   const [ready, setReady] = useState(!token.get())
-  const route = useHash() || 'week'
+  const hash = useHash()
+  const route = hash || 'week'
 
   useEffect(() => {
     if (token.get()) get<S['MeOut']>('/auth/me').then(setMe, () => token.clear()).finally(() => setReady(true))
@@ -44,12 +70,13 @@ export default function App() {
   }, [])
 
   if (!ready) return <div className="center">Loading…</div>
-  if (!me) return <Login onSignedIn={setMe} />
+  if (!me) return hash ? <Login onSignedIn={setMe} /> : <Landing />
 
   const signOut = async () => {
     await post('/auth/logout').catch(() => {}) // the token is dropped locally either way
     token.clear()
     setMe(null)
+    location.hash = '' // back to the landing page
   }
   const page = (PAGES[route] ?? PAGES.week)()
 
@@ -58,12 +85,7 @@ export default function App() {
       <header className="topbar">
         <div className="logo"><i />WorkHub</div>
         <span className="spacer" />
-        <div className="who">
-          <span className="avatar">{initials(me.name)}</span>
-          <span>{me.name}<br /><span className="hint">{me.roles.join(', ')}</span></span>
-          <a className="btn sm" href="#password">Change password</a>
-          <button type="button" className="btn sm" onClick={signOut}>Sign out</button>
-        </div>
+        <AccountMenu name={me.name} roles={me.roles} onSignOut={signOut} />
       </header>
       <div className="body">
         <nav className="nav" aria-label="Main">
