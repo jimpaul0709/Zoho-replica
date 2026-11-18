@@ -40,7 +40,11 @@ export function Chip({ status }: { status: string }) {
 
 export function Loading({ error, loading }: { error: string; loading: boolean }) {
   if (error) return <Banner kind="bad">{error}</Banner>
-  return loading ? <div className="hint">Loading…</div> : null
+  return loading ? <div className="skeleton" aria-busy="true" aria-label="Loading"><i /><i /><i /></div> : null
+}
+
+export function Empty({ title, hint }: { title: string; hint: string }) {
+  return <div className="empty"><b>{title}</b><span className="hint">{hint}</span></div>
 }
 
 export const initials = (name: string) => name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase()

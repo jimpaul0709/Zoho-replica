@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { api, get, post, fmtDay, fmtRange, addDays, toHours, type S } from '../api'
-import { Banner, Chip, Loading, initials, useLoad } from '../ui'
+import { Banner, Chip, Empty, Loading, initials, useLoad } from '../ui'
 
 type Item = S['InboxItem']
 const isTime = (i: Item) => i.subject_type !== 'leave'
@@ -64,7 +64,7 @@ export default function Approvals() {
             </div>
           )}
           {items.length === 0 ? (
-            <div className="hint">Nothing waiting for you.</div>
+            <Empty title="Nothing waiting for you" hint="Weeks and leave requests from your team show up here once they are submitted." />
           ) : (
             <table>
               <thead><tr>{tab === 'time' && <th />}<th>Employee</th><th>{tab === 'time' ? 'Week' : 'Dates'}</th><th className="num">Hours</th><th>Submitted</th><th /></tr></thead>

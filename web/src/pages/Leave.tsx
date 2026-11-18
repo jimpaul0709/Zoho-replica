@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { get, post, fmtRange, type S } from '../api'
-import { Banner, Chip, Loading, useLoad } from '../ui'
+import { Banner, Chip, Empty, Loading, useLoad } from '../ui'
 
 export default function Leave() {
   const year = new Date().getFullYear()
@@ -41,20 +41,18 @@ export default function Leave() {
     <section style={{ display: 'grid', gap: 18 }}>
       <div className="head"><h2>Leave</h2></div>
       <Loading error={balances.error || types.error || requests.error} loading={balances.loading && !balances.data} />
-      <div className="grid4">
+      <div className="card balances">
         {(balances.data ?? []).map((b) => {
           const total = b.opening + b.accrued + b.adjusted
           return (
-            <div className="card" key={b.leave_type_id}>
-              <span className="hint">{b.leave_type}</span>
-              <div className="ringrow">
-                <div className="ring" style={{ ['--p' as string]: total > 0 ? Math.max(0, (b.available / total) * 100) : 0 }}><b>{b.available}</b></div>
-                <span className="hint">days left<br />{b.used} used{b.pending ? ', ' + b.pending + ' pending' : ''}</span>
-              </div>
+            <div className="bal-row" key={b.leave_type_id}>
+              <b>{b.leave_type}</b>
+              <div className="meter"><i style={{ width: (total > 0 ? Math.max(0, (b.available / total) * 100) : 0) + '%' }} /></div>
+              <span className="hint"><b>{b.available}</b> of {total} days left{b.pending ? ', ' + b.pending + ' pending' : ''}</span>
             </div>
           )
         })}
-        {balances.data?.length === 0 && <div className="hint">No balances yet. HR sets opening balances.</div>}
+        {balances.data?.length === 0 && <Empty title="No leave balances yet" hint="HR sets your opening balance under HR admin, Leave setup." />}
       </div>
 
       <div className="grid2">
@@ -77,7 +75,7 @@ export default function Leave() {
 
         <div className="card scroll">
           <h3>My requests</h3>
-          {requests.data?.length === 0 && <div className="hint">No leave requests yet.</div>}
+          {requests.data?.length === 0 && <Empty title="No leave requests yet" hint="Use the form to ask for time off." />}
           <table>
             <thead><tr><th>Type</th><th>Dates</th><th className="num">Hours</th><th>Status</th><th /></tr></thead>
             <tbody>

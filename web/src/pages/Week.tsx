@@ -137,10 +137,10 @@ export default function Week() {
           {wk.status === 'submitted' && <Banner>Submitted. Waiting for approval. You can still change entries until it is approved.</Banner>}
           {locked && <Banner kind="ok">Approved. This week is locked; ask HR for a correction if something is wrong.</Banner>}
 
-          <div className="grid4">
-            <div className="card stat"><span className="hint">Logged this week</span><span className="big">{logged} h</span><span className="hint">of {EXPECTED_HOURS} h expected</span></div>
-            <div className="card stat"><span className="hint">Still to log</span><span className="big">{Math.max(0, EXPECTED_HOURS - logged)} h</span><span className="hint">to reach {EXPECTED_HOURS} h</span></div>
-            <div className="card stat wide">
+          <div className="strip">
+            <div><span className="hint">Logged this week</span><span className="big">{logged} h</span><span className="hint">of {EXPECTED_HOURS} h expected</span></div>
+            <div><span className="hint">Still to log</span><span className="big">{Math.max(0, EXPECTED_HOURS - logged)} h</span><span className="hint">to reach {EXPECTED_HOURS} h</span></div>
+            <div>
               <span className="hint">Hours per day (dashed line = 8 h)</span>
               <div className="bars">
                 {dates.map((d, i) => {

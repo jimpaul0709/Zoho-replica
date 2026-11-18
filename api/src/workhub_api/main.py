@@ -10,6 +10,7 @@ from workhub_api.delegations import router as delegations_router
 from workhub_api.edit_requests import router as edit_requests_router
 from workhub_api.hr import router as hr_router
 from workhub_api.leave import router as leave_router
+from workhub_api.payslips import router as payslips_router
 from workhub_api.timesheets import router as timesheets_router
 
 app = FastAPI(title="WorkHub API")
@@ -26,6 +27,7 @@ app.include_router(approvals_router)
 app.include_router(delegations_router)
 app.include_router(hr_router)
 app.include_router(leave_router)
+app.include_router(payslips_router)
 
 
 @app.get("/health")

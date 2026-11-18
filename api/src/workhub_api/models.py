@@ -15,6 +15,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    LargeBinary,
     MetaData,
     String,
     Text,
@@ -359,6 +360,37 @@ class AuthSession(Stamped, Base):
     token_hash: Mapped[str] = mapped_column(String(64), unique=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+# ---------- Payslips (WH-50, migration 0007) ----------
+
+
+class PayslipBatch(Stamped, Base):
+    """One month of payslips. HR uploads, previews the matching, then publishes."""
+
+    __tablename__ = "payslip_batch"
+    __table_args__ = (CheckConstraint("status in ('draft','published')", name="status"),)
+
+    month: Mapped[str] = mapped_column(String(7), unique=True)  # "2026-11"
+    uploaded_by: Mapped[int] = _fk("app_user.id")
+    status: Mapped[str] = mapped_column(String(20), server_default="draft")
+    match_report: Mapped[dict[str, Any]] = mapped_column(JSONB)  # matched, unmatched, duplicates
+
+
+class Payslip(Stamped, Base):
+    """One employee's PDF for a month. Never read by anyone but the employee it belongs to.
+
+    shortcut: the PDF bytes live in Postgres (about 100 KB each, a few hundred a month); move to
+    object storage (Azure Blob / MinIO, key kept here) when volume or backup size makes it hurt.
+    """
+
+    __tablename__ = "payslip"
+    __table_args__ = (UniqueConstraint("batch_id", "user_id"),)
+
+    batch_id: Mapped[int] = _fk("payslip_batch.id")
+    user_id: Mapped[int] = _fk("app_user.id")
+    filename: Mapped[str] = mapped_column(String(255))
+    content: Mapped[bytes] = mapped_column(LargeBinary)
 
 
 # ---------- 3. Leave (WH-40, WH-41). Minutes; a full day is daily_expected_minutes ----------
