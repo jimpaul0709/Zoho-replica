@@ -88,7 +88,7 @@ main { min-width: 0; display: grid; gap: 18px; align-content: start; }
 .btn.primary:hover { filter: brightness(1.06); }
 .btn.danger { color: var(--bad); border-color: var(--bad-soft); }
 .btn.sm { min-height: 32px; padding: 3px 12px; font-size: 13px; }
-.btn[disabled] { opacity: 0.45; cursor: not-allowed; transform: none; }
+.btn[disabled] { opacity: 0.6; cursor: not-allowed; transform: none; }
 .field { display: grid; gap: 5px; }
 .field > span { font-size: 12px; color: var(--muted); font-weight: 500; }
 input[type="text"], input[type="email"], input[type="password"], input[type="date"], select, textarea {
@@ -183,7 +183,7 @@ main > section > :nth-child(n + 6) { animation-delay: 300ms; }
 @media (max-width: 860px) {
   .body, .login-wrap { grid-template-columns: 1fr; }
   .brand-pane { display: none; }
-  .nav { position: static; flex-direction: row; overflow-x: auto; padding: 8px; }
+  .nav { position: static; flex-direction: row; flex-wrap: wrap; padding: 8px; }
   .nav a { white-space: nowrap; } .nav .grp { display: none; }
   .strip { grid-template-columns: 1fr; }
   .strip > div + div { border-left: 0; border-top: 1px solid var(--line); }

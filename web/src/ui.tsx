@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { get, type S } from './api'
 
 // Load data from the API; `reload()` refetches after a change.
 export function useLoad<T>(fn: () => Promise<T>, deps: unknown[] = []) {
@@ -48,3 +49,16 @@ export function Empty({ title, hint }: { title: string; hint: string }) {
 }
 
 export const initials = (name: string) => name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase()
+
+// Name dropdown over active users; `value` is the user id as text ('' = none chosen).
+export function UserSelect({ id, label, value, onChange }: { id: string; label: string; value: string; onChange: (v: string) => void }) {
+  const users = useLoad(() => get<S['UserOut'][]>('/users'), [])
+  return (
+    <label className="field"><span>{label}</span>
+      <select id={id} value={value} onChange={(e) => onChange(e.target.value)}>
+        <option value="">{users.error ? 'Could not load users' : users.loading ? 'Loading…' : 'Choose…'}</option>
+        {(users.data ?? []).map((u) => <option key={u.id} value={u.id}>{u.name} · {u.email}</option>)}
+      </select>
+    </label>
+  )
+}

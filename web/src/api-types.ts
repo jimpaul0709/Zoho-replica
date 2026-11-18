@@ -567,6 +567,114 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/payslips/batches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload Batch
+         * @description Upload a month. A draft month is replaced; a published month is locked.
+         */
+        post: operations["upload_batch_payslips_batches_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/payslips/batches/{batch_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Batch */
+        get: operations["get_batch_payslips_batches__batch_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/payslips/batches/{batch_id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish Batch */
+        post: operations["publish_batch_payslips_batches__batch_id__publish_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/payslips/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Payslips */
+        get: operations["my_payslips_payslips_mine_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/payslips/{payslip_id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download
+         * @description The PDF, to its owner only. Anyone else, and anything unpublished, looks like a 404.
+         */
+        get: operations["download_payslips__payslip_id__file_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Users */
+        get: operations["list_users_users_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -669,6 +777,21 @@ export interface components {
             /** Available */
             available: number;
         };
+        /** BatchOut */
+        BatchOut: {
+            /** Id */
+            id: number;
+            /** Month */
+            month: string;
+            /** Status */
+            status: string;
+            /** Matched */
+            matched: components["schemas"]["Matched"][];
+            /** Unmatched */
+            unmatched: components["schemas"]["Unmatched"][];
+            /** Duplicates */
+            duplicates: components["schemas"]["Duplicate"][];
+        };
         /** BlackoutIn */
         BlackoutIn: {
             /**
@@ -690,6 +813,13 @@ export interface components {
             note: string;
             /** Id */
             id: number;
+        };
+        /** Body_upload_batch_payslips_batches_post */
+        Body_upload_batch_payslips_batches_post: {
+            /** Files */
+            files: string[];
+            /** Month */
+            month: string;
         };
         /** BulkApprove */
         BulkApprove: {
@@ -786,6 +916,13 @@ export interface components {
             op: "delete";
             /** Entry Id */
             entry_id: number;
+        };
+        /** Duplicate */
+        Duplicate: {
+            /** Employee Code */
+            employee_code: string;
+            /** Filenames */
+            filenames: string[];
         };
         /** EditRequestIn */
         EditRequestIn: {
@@ -1015,6 +1152,15 @@ export interface components {
              */
             expires_at: string;
         };
+        /** Matched */
+        Matched: {
+            /** Employee Code */
+            employee_code: string;
+            /** Name */
+            name: string;
+            /** Filename */
+            filename: string;
+        };
         /** MeOut */
         MeOut: {
             /** Id */
@@ -1032,6 +1178,13 @@ export interface components {
             current_password: string;
             /** New Password */
             new_password: string;
+        };
+        /** PayslipRow */
+        PayslipRow: {
+            /** Id */
+            id: number;
+            /** Month */
+            month: string;
         };
         /** SendBack */
         SendBack: {
@@ -1148,6 +1301,13 @@ export interface components {
             /** Id */
             id: number;
         };
+        /** Unmatched */
+        Unmatched: {
+            /** Filename */
+            filename: string;
+            /** Reason */
+            reason: string;
+        };
         /** UpdateChange */
         UpdateChange: {
             /**
@@ -1163,6 +1323,15 @@ export interface components {
             billable?: boolean | null;
             /** Notes */
             notes?: string | null;
+        };
+        /** UserOut */
+        UserOut: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Email */
+            email: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -2448,6 +2617,208 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LeaveOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_batch_payslips_batches_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-user-id"?: number | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_batch_payslips_batches_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_batch_payslips_batches__batch_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-user-id"?: number | null;
+            };
+            path: {
+                batch_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    publish_batch_payslips_batches__batch_id__publish_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-user-id"?: number | null;
+            };
+            path: {
+                batch_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_payslips_payslips_mine_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-user-id"?: number | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayslipRow"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_payslips__payslip_id__file_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-user-id"?: number | null;
+            };
+            path: {
+                payslip_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_users_users_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-user-id"?: number | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserOut"][];
                 };
             };
             /** @description Validation Error */

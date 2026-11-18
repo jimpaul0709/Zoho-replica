@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { get, post, api, addDays, mondayOf, type S } from '../api'
-import { Banner, Loading, useLoad } from '../ui'
+import { Banner, Loading, UserSelect, useLoad } from '../ui'
 
 type Msg = { kind: 'ok' | 'bad'; text: string } | undefined
 
@@ -51,7 +51,7 @@ function TimeCorrections() {
     <div className="card">
       {msg && <Banner kind={msg.kind}>{msg.text}</Banner>}
       <div className="grid3">
-        <label className="field"><span>Employee (user id)</span><input id="hr-user" type="text" inputMode="numeric" value={userId} onChange={(e) => setUserId(e.target.value)} /></label>
+        <UserSelect id="hr-user" label="Employee" value={userId} onChange={setUserId} />
         <label className="field"><span>Week starting (Monday)</span><input id="hr-week" type="date" value={week} onChange={(e) => e.target.value && setWeek(mondayOf(new Date(e.target.value + 'T00:00')))} /></label>
       </div>
       <label className="field"><span>Reason (kept in the audit log, the employee sees it)</span><textarea id="hr-reason" value={reason} onChange={(e) => setReason(e.target.value)} /></label>
@@ -111,7 +111,7 @@ function LeaveSetup() {
 
       <div className="card">
         <h3>Opening balance ({year})</h3>
-        <label className="field"><span>Employee (user id)</span><input id="bal-user" type="text" inputMode="numeric" value={b.user_id} onChange={(e) => setB({ ...b, user_id: e.target.value })} /></label>
+        <UserSelect id="bal-user" label="Employee" value={b.user_id} onChange={(v) => setB({ ...b, user_id: v })} />
         <label className="field"><span>Leave type</span>
           <select id="bal-type" value={b.leave_type_id} onChange={(e) => setB({ ...b, leave_type_id: e.target.value })}>
             <option value="">Choose…</option>
