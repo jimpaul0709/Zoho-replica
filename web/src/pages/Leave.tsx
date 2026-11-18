@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { get, post, fmtRange, type S } from '../api'
-import { Banner, Chip, DateField, Empty, Loading, Select, useLoad } from '../ui'
+import { Banner, Chip, CountUp, DateField, Empty, Loading, Select, useLoad } from '../ui'
 
 export default function Leave() {
   const year = new Date().getFullYear()
@@ -47,7 +47,7 @@ export default function Leave() {
           return (
             <div className="card bal-card" key={b.leave_type_id} style={{ ['--i' as string]: i }}>
               <span className="hint">{b.leave_type}</span>
-              <span className="big">{b.available} <small>h left</small></span>
+              <span className="big"><CountUp value={b.available} /> <small>h left</small></span>
               <div className="meter"><i style={{ width: (total > 0 ? Math.max(0, (b.available / total) * 100) : 0) + '%' }} /></div>
               <span className="hint">of {total} h (8 h = 1 day){b.pending ? ', ' + b.pending + ' pending' : ''}</span>
             </div>

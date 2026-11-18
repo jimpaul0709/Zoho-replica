@@ -203,3 +203,21 @@ export function ThemeToggle() {
     </button>
   )
 }
+
+// Number that counts up from 0 on mount and when `value` changes. Instant under reduced motion.
+export function CountUp({ value }: { value: number }) {
+  const [v, setV] = useState(0)
+  useEffect(() => {
+    const ms = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 700
+    const t0 = performance.now()
+    let raf = 0
+    const tick = (t: number) => {
+      const p = ms ? Math.min(1, Math.max(0, (t - t0) / ms)) : 1
+      setV(value * (1 - (1 - p) ** 3))
+      if (p < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [value])
+  return <>{Number.isInteger(value) ? Math.round(v) : Math.round(v * 100) / 100}</>
+}

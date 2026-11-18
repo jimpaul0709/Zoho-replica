@@ -1,5 +1,5 @@
 import { get, addDays, fmtDay, iso, mondayOf, toHours, type S } from '../api'
-import { Empty, useLoad } from '../ui'
+import { CountUp, Empty, useLoad } from '../ui'
 
 const EXPECTED_HOURS = 40
 const hello = () => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening' }
@@ -29,7 +29,7 @@ export default function Home({ name }: { name: string }) {
         </div>
         <div className="hero-stat">
           <span className="hint">Logged this week</span>
-          <span className="big">{logged} <small>of {EXPECTED_HOURS} h</small></span>
+          <span className="big"><CountUp value={logged} /> <small>of {EXPECTED_HOURS} h</small></span>
           <div className="meter"><i style={{ width: Math.min(100, (logged / EXPECTED_HOURS) * 100) + '%' }} /></div>
         </div>
       </div>
@@ -62,7 +62,7 @@ export default function Home({ name }: { name: string }) {
         <div className="card">
           <div className="head"><h3>Waiting for your approval</h3><span className="spacer" /><a className="hint" href="#approvals">Open</a></div>
           {waiting > 0
-            ? <div className="stat-big"><span className="big">{waiting}</span><span className="hint">timesheets and leave requests</span></div>
+            ? <div className="stat-big"><span className="big"><CountUp value={waiting} /></span><span className="hint">timesheets and leave requests</span></div>
             : <Empty title="Nothing waiting" hint="Good job. New requests from your team show up here." />}
         </div>
       </div>

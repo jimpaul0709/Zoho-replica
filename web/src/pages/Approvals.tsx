@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { api, get, post, fmtDay, fmtRange, addDays, toHours, type S } from '../api'
 import { Banner, Chip, DateField, Empty, Loading, UserSelect, initials, useLoad } from '../ui'
 
@@ -12,6 +12,13 @@ export default function Approvals() {
   const [picked, setPicked] = useState<number[]>([])
   const [back, setBack] = useState<{ date?: string; text: string }>()
   const [msg, setMsg] = useState<{ kind: 'ok' | 'bad'; text: string }>()
+
+  useEffect(() => {
+    if (openId === undefined) return
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') { setOpenId(undefined); setBack(undefined) } }
+    document.addEventListener('keydown', esc)
+    return () => document.removeEventListener('keydown', esc)
+  }, [openId])
 
   const items = (inbox.data ?? []).filter((i) => (tab === 'leave' ? !isTime(i) : isTime(i)))
   const open = inbox.data?.find((i) => i.approval_id === openId)
@@ -56,7 +63,7 @@ export default function Approvals() {
       <Loading error={inbox.error} loading={inbox.loading && !inbox.data} />
       {msg && <Banner kind={msg.kind}>{msg.text}</Banner>}
 
-      {!open && inbox.data && (
+      {inbox.data && (
         <div className="card scroll">
           {tab === 'time' && (
             <div className="row">
@@ -90,8 +97,10 @@ export default function Approvals() {
 
       {open && (
         <>
+          <div className="scrim" onClick={() => { setOpenId(undefined); setBack(undefined) }} />
+          <aside className="drawer" role="dialog" aria-label="Review request">
           <div className="head">
-            <button type="button" className="btn sm" onClick={() => { setOpenId(undefined); setBack(undefined) }}>‹ Back to inbox</button>
+            <button type="button" className="btn sm" onClick={() => { setOpenId(undefined); setBack(undefined) }}>Close</button>
             <h3>{open.requester_name}{open.week_start ? ' · ' + fmtRange(open.week_start, addDays(open.week_start, 6)) : ''}</h3>
           </div>
           {open.leave ? (
@@ -136,6 +145,7 @@ export default function Approvals() {
               {open.timeline.map((s, n) => <div key={n} className="hint">{new Date(s.at).toLocaleString('en-GB')} · {s.actor_name} {s.action}{s.comment ? ': ' + s.comment : ''}</div>)}
             </div>
           )}
+          </aside>
         </>
       )}
       <Delegations />
