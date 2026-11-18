@@ -2,7 +2,7 @@ import type { components } from './api-types'
 
 export type S = components['schemas']
 
-const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8001'
 const KEY = 'workhub_token'
 
 export const token = {

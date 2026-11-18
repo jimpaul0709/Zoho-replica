@@ -59,10 +59,25 @@ The web build bakes in `VITE_API_URL`, so it is set at build time, not at run ti
 - [ ] Migration tried on a throwaway database, up, down and up again
 - [ ] A restore from backup has been tried once, into a scratch database
 - [ ] One worker replica only
-- [ ] Security sweep: permissions and audit on `/users`, `/payslips`, edit requests, HR actions
+- [x] Security sweep of permissions and ownership (see below); minor findings still open
 - [ ] Dry run with a month of real time, leave and payslips (target Dec 21)
+
+## Security sweep (done on the code, Nov 18)
+
+Every route needs a sign-in, and every admin, HR, manager and payslip route checks the role (a script and a read of the
+handlers, no route was open except `/health` and `/auth/login`). Records are checked per owner: weeks, entries, leave,
+edit requests, approvals and payslips cannot be read or changed by someone they do not belong to, and an edit request can
+only name entries in the requester's own week. Payslips: only the owner can download, every download is audited, HR sees
+only the matching report. HR cannot correct their own week.
+
+Minor findings, none blocking, worth fixing before real use:
+
+- **Sign-in tells valid emails apart.** After 5 wrong tries a real account answers 429 while an unknown email keeps answering 401.
+- **No per-IP limit on sign-in.** The lock is per account, so anyone can lock a colleague out by guessing wrong 5 times.
+- **The token is kept in the browser's localStorage.** Any script injected into the page could read it. Keep the page free of third-party scripts.
+- **Payslip uploads are not checked to be real PDFs** (only the name and size). HR-only, and the download is forced as an attachment.
+- **`GET /users` lists every active person's name and email to any signed-in user.** Intended (it feeds the pickers).
 
 ## Not done yet
 
-Sign-in has no rate limit beyond the 5-failure account lock. There is no alerting on the worker (if it stops,
-approvals stop escalating and leave stops accruing without any message). Both are worth adding after the dry run.
+There is no alerting on the worker (if it stops, approvals stop escalating and leave stops accruing without any message).
