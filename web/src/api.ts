@@ -26,15 +26,17 @@ function messageOf(detail: unknown, fallback: string): string {
   return fallback
 }
 
-export async function api<T = unknown>(method: string, path: string, body?: unknown): Promise<T> {
+// A FormData body is sent as multipart (the browser sets the boundary); anything else as JSON.
+async function raw(method: string, path: string, body?: unknown): Promise<Response> {
   const t = token.get()
+  const form = body instanceof FormData
   const res = await fetch(BASE + path, {
     method,
     headers: {
-      ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+      ...(body !== undefined && !form ? { 'Content-Type': 'application/json' } : {}),
       ...(t ? { Authorization: `Bearer ${t}` } : {}),
     },
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: body === undefined ? undefined : form ? body : JSON.stringify(body),
   }).catch(() => {
     throw new ApiError(0, 'Cannot reach the server. Check that the API is running.')
   })
@@ -46,7 +48,21 @@ export async function api<T = unknown>(method: string, path: string, body?: unkn
     const data = await res.json().catch(() => ({}))
     throw new ApiError(res.status, messageOf(data.detail, res.statusText))
   }
+  return res
+}
+
+export async function api<T = unknown>(method: string, path: string, body?: unknown): Promise<T> {
+  const res = await raw(method, path, body)
   return (res.status === 204 ? undefined : await res.json()) as T
+}
+
+// Fetch a protected file (needs the Bearer token, so a plain link will not work) and save it.
+export async function saveFile(path: string, filename: string) {
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(await (await raw('GET', path)).blob())
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(a.href)
 }
 
 export const get = <T,>(path: string) => api<T>('GET', path)

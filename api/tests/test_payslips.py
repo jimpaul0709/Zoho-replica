@@ -155,9 +155,11 @@ def test_owner_downloads_the_pdf_and_it_is_audited(world: World) -> None:
     assert res.headers["content-type"] == "application/pdf"
     assert res.content == pdf("mine")
     event = world.session.scalars(
-        select(AuditEvent).where(AuditEvent.entity == "payslip", AuditEvent.action == "view")
+        select(AuditEvent).where(
+            AuditEvent.entity == "payslip", AuditEvent.action == "view", AuditEvent.entity_id == payslip_id
+        )
     ).one()
-    assert event.actor_id == world.emp.id and event.entity_id == payslip_id
+    assert event.actor_id == world.emp.id
 
 
 def test_nobody_else_can_download_it_not_even_hr(world: World) -> None:
