@@ -1,3 +1,5 @@
+import { ThemeToggle } from '../ui'
+
 const FEATURES = [
   {
     id: 'time', tag: 'Time', img: 'day', alt: 'The day view with hours for one task and the weekly totals above',
@@ -28,6 +30,7 @@ export default function Landing() {
       <header className="lp-nav">
         <div className="logo"><i />WorkHub</div>
         <span className="spacer" />
+        <ThemeToggle />
         <button type="button" className="btn lp-link" onClick={() => go('features')}>Features</button>
         <a className="btn primary" href="#login">Sign in</a>
       </header>

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { api, get, post, fmtDay, fmtRange, addDays, toHours, type S } from '../api'
-import { Banner, Chip, Empty, Loading, UserSelect, initials, useLoad } from '../ui'
+import { Banner, Chip, DateField, Empty, Loading, UserSelect, initials, useLoad } from '../ui'
 
 type Item = S['InboxItem']
 const isTime = (i: Item) => i.subject_type !== 'leave'
@@ -77,7 +77,7 @@ export default function Approvals() {
                     )}
                     <td><span className="who2"><i className="av c1">{initials(i.requester_name)}</i>{i.requester_name}</span></td>
                     <td>{i.leave ? fmtRange(i.leave.from_date, i.leave.to_date) : i.week_start ? fmtRange(i.week_start, addDays(i.week_start, 6)) : ''}</td>
-                    <td className="num">{i.leave ? i.leave.hours : toHours(i.total_minutes)}</td>
+                    <td className="num"><span className="hcell"><i style={{ width: Math.min(100, ((i.leave ? i.leave.hours : toHours(i.total_minutes)) / 40) * 100) + '%' }} />{i.leave ? i.leave.hours : toHours(i.total_minutes)}</span></td>
                     <td>{new Date(i.requested_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} {i.overdue && <span className="chip bad">overdue</span>}</td>
                     <td><button type="button" className="btn sm" onClick={() => { setOpenId(i.approval_id); setMsg(undefined) }}>Review</button></td>
                   </tr>
@@ -172,8 +172,8 @@ function Delegations() {
       ))}
       <div className="grid3">
         <UserSelect id="deleg-to" label="Delegate to" value={to} onChange={setTo} />
-        <label className="field"><span>From</span><input id="deleg-from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></label>
-        <label className="field"><span>Until</span><input id="deleg-until" type="date" value={until} onChange={(e) => setUntil(e.target.value)} /></label>
+        <DateField id="deleg-from" label="From" value={from} onChange={(v) => { setFrom(v); if (until && until < v) setUntil('') }} />
+        <DateField id="deleg-until" label="Until" value={until} min={from} rangeFrom={from} onChange={setUntil} />
       </div>
       <div><button type="button" className="btn primary" disabled={!to || !from || !until} onClick={add}>Save delegation</button></div>
     </div>

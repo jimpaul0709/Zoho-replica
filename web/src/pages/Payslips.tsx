@@ -16,12 +16,14 @@ export default function Payslips() {
       {err && <Banner kind="bad">{err}</Banner>}
       {list.data?.length === 0 && <Empty title="No payslips yet" hint="HR publishes payslips once a month's batch is checked. Only you can see yours." />}
       {(list.data ?? []).length > 0 && (
-        <div className="card">
-          {(list.data ?? []).map((p) => (
-            <div className="row" key={p.id}>
-              <b>{monthName(p.month)}</b>
-              <span className="spacer" />
-              <button type="button" className="btn sm" onClick={() => open(p)}>Download PDF</button>
+        <div className="docs">
+          {(list.data ?? []).map((p, i) => (
+            <div className="card doc" key={p.id} style={{ ['--i' as string]: i }}>
+              <span className="doc-ic" aria-hidden="true">
+                <svg className="i" viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6" /></svg>
+              </span>
+              <div><b>{monthName(p.month)}</b><div className="hint">Payslip, PDF</div></div>
+              <button type="button" className="btn sm" onClick={() => open(p)}>Download</button>
             </div>
           ))}
         </div>

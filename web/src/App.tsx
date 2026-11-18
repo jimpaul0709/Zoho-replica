@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { get, post, token, type S } from './api'
-import { initials, useDismiss, useHash } from './ui'
+import { ThemeToggle, initials, useDismiss, useHash } from './ui'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Password from './pages/Password'
+import Home from './pages/Home'
 import Week from './pages/Week'
 import Approvals from './pages/Approvals'
 import Leave from './pages/Leave'
@@ -11,6 +12,7 @@ import Payslips from './pages/Payslips'
 import Hr from './pages/Hr'
 
 const ICONS: Record<string, string> = {
+  home: 'M4 11l8-7 8 7v8a2 2 0 01-2 2h-3v-6H9v6H6a2 2 0 01-2-2z',
   week: 'M3 8a3 3 0 013-3h12a3 3 0 013 3v10a3 3 0 01-3 3H6a3 3 0 01-3-3zM8 3v4M16 3v4M3 10h18',
   leave: 'M4 20c0-7 5-13 16-14-1 9-7 14-14 14M4 20L14 10',
   payslips: 'M6 6h12a3 3 0 013 3v6a3 3 0 01-3 3H6a3 3 0 01-3-3V9a3 3 0 013-3zM12 9.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5',
@@ -19,11 +21,12 @@ const ICONS: Record<string, string> = {
 }
 // Role-based access comes later: every signed-in person sees every screen for now.
 const NAV = [
-  { group: 'Me', items: [['week', 'Week'], ['leave', 'Leave'], ['payslips', 'Payslips']] },
+  { group: 'Me', items: [['home', 'Home'], ['week', 'Week'], ['leave', 'Leave'], ['payslips', 'Payslips']] },
   { group: 'Manager', items: [['approvals', 'Approvals']] },
   { group: 'HR', items: [['hr', 'HR admin']] },
 ]
-const PAGES: Record<string, () => React.ReactNode> = {
+const PAGES: Record<string, (me: S['MeOut']) => React.ReactNode> = {
+  home: (me) => <Home name={me.name} />,
   week: () => <Week />,
   leave: () => <Leave />,
   payslips: () => <Payslips />,
@@ -60,7 +63,7 @@ export default function App() {
   const [me, setMe] = useState<S['MeOut'] | null>(null)
   const [ready, setReady] = useState(!token.get())
   const hash = useHash()
-  const route = hash || 'week'
+  const route = hash || 'home'
 
   useEffect(() => {
     if (token.get()) get<S['MeOut']>('/auth/me').then(setMe, () => token.clear()).finally(() => setReady(true))
@@ -78,8 +81,8 @@ export default function App() {
     setMe(null)
     location.hash = '' // back to the landing page
   }
-  const page = (PAGES[route] ?? PAGES.week)()
-  const title = NAV.flatMap((g) => g.items).find(([id]) => id === route)?.[1] ?? 'Account'
+  const page = (PAGES[route] ?? PAGES.home)(me)
+  const found = NAV.flatMap((g) => g.items.map(([id, l]) => [id, l, g.group] as const)).find(([id]) => id === route)
 
   return (
     <div className="app">
@@ -99,8 +102,9 @@ export default function App() {
       </nav>
       <div className="col">
         <header className="topbar">
-          <span className="crumb">{title}</span>
+          <span className="crumb"><span className="hint">{found ? found[2] + " /" : ""}</span> {found?.[1] ?? "Account"}</span>
           <span className="spacer" />
+          <ThemeToggle />
           <AccountMenu name={me.name} roles={me.roles} onSignOut={signOut} />
         </header>
         <main>{page}</main>

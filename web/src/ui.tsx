@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from 'react'
-import { get, type S } from './api'
+import { get, iso, parseDate, fmtDay, type S } from './api'
 
 // Load data from the API; `reload()` refetches after a change.
 export function useLoad<T>(fn: () => Promise<T>, deps: unknown[] = []) {
@@ -127,5 +127,79 @@ export function UserSelect({ id, label, value, onChange }: { id: string; label: 
     <Select id={id} label={label} value={value} onChange={onChange}
       placeholder={users.error ? 'Could not load users' : users.loading ? 'Loading…' : 'Choose…'}
       options={(users.data ?? []).map((u) => ({ value: String(u.id), label: u.name, sub: u.email }))} />
+  )
+}
+
+// Date picker that replaces <input type="date">. Values are yyyy-mm-dd. `rangeFrom` shades the days between it and the value.
+export function DateField({ id, label, value, onChange, min, rangeFrom, required }: {
+  id: string; label: string; value: string; onChange: (v: string) => void; min?: string; rangeFrom?: string; required?: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const first = (s: string) => { const d = parseDate(s || min || iso(new Date())); d.setDate(1); return d }
+  const [view, setView] = useState(() => first(value))
+  const root = useRef<HTMLDivElement>(null)
+  const close = useCallback(() => setOpen(false), [])
+  useDismiss(root, open, close)
+  const today = iso(new Date())
+  const lead = (view.getDay() + 6) % 7
+  const cells = Array.from({ length: 42 }, (_, i) => { const d = new Date(view); d.setDate(1 - lead + i); return iso(d) })
+  const step = (n: number) => setView(new Date(view.getFullYear(), view.getMonth() + n, 1))
+  const pick = (d: string) => { onChange(d); setOpen(false) }
+  return (
+    <div className="field sel" ref={root} onKeyDown={(e) => { if (e.key === 'Escape') setOpen(false) }}>
+      <span id={`${id}-l`}>{label}</span>
+      <button type="button" id={id} className="sel-btn" aria-haspopup="dialog" aria-expanded={open} aria-labelledby={`${id}-l ${id}`}
+        onClick={() => { setView(first(value)); setOpen(!open) }}>
+        <span className={value ? 'sel-val' : 'sel-ph'}>{value ? fmtDay(value, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : 'Pick a date'}</span>
+        <svg className="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8a3 3 0 013-3h12a3 3 0 013 3v10a3 3 0 01-3 3H6a3 3 0 01-3-3zM8 3v4M16 3v4M3 10h18" /></svg>
+      </button>
+      {required && <input className="sel-req" tabIndex={-1} aria-hidden="true" value={value} onChange={() => {}} required />}
+      {open && (
+        <div className="sel-pop cal-pop" role="dialog" aria-label={label}>
+          <div className="cal-head">
+            <button type="button" className="btn sm" aria-label="Previous month" onClick={() => step(-1)}>‹</button>
+            <b>{view.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</b>
+            <button type="button" className="btn sm" aria-label="Next month" onClick={() => step(1)}>›</button>
+          </div>
+          <div className="cal-grid">
+            {'MTWTFSS'.split('').map((w, i) => <span key={i} className="hint cal-w">{w}</span>)}
+            {cells.map((d) => {
+              const off = d.slice(0, 7) !== iso(view).slice(0, 7)
+              const lo = rangeFrom && value ? (rangeFrom < value ? rangeFrom : value) : ''
+              const hi = rangeFrom && value ? (rangeFrom < value ? value : rangeFrom) : ''
+              const cls = (off ? ' off' : '') + (d === value ? ' sel' : '') + (d === today ? ' today' : '') + (lo && d >= lo && d <= hi && d !== value ? ' mid' : '')
+              return <button key={d} type="button" className={'cal-d' + cls} disabled={!!min && d < min} aria-pressed={d === value} aria-label={fmtDay(d, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} onClick={() => pick(d)}>{Number(d.slice(8))}</button>
+            })}
+          </div>
+          <div className="cal-foot">
+            <button type="button" className="btn sm" onClick={() => pick(today)} disabled={!!min && today < min}>Today</button>
+            {!required && value && <button type="button" className="btn sm" onClick={() => pick('')}>Clear</button>}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+const THEME_KEY = 'wh-theme'
+try { const s = localStorage.getItem(THEME_KEY); if (s) document.documentElement.dataset.theme = s } catch { /* storage blocked: follow the system */ }
+
+// Sun/moon button. No saved choice means the page follows the system theme.
+export function ThemeToggle() {
+  const now = () => document.documentElement.dataset.theme ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+  const [dark, setDark] = useState(() => now() === 'dark')
+  const flip = () => {
+    const next = dark ? 'light' : 'dark'
+    document.documentElement.dataset.theme = next
+    try { localStorage.setItem(THEME_KEY, next) } catch { /* storage blocked: applies for this visit only */ }
+    setDark(!dark)
+  }
+  const label = dark ? 'Switch to light theme' : 'Switch to dark theme'
+  return (
+    <button type="button" className="icon-btn" aria-label={label} title={label} onClick={flip}>
+      <svg className="i" viewBox="0 0 24 24" aria-hidden="true">
+        <path d={dark ? 'M12 8a4 4 0 100 8 4 4 0 000-8M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4' : 'M20 14.5A8 8 0 019.5 4 8 8 0 1020 14.5z'} />
+      </svg>
+    </button>
   )
 }

@@ -17,7 +17,7 @@ function Cell(props: { entries: Entry[]; label: string; disabled: boolean; rev: 
   return (
     <input
       key={total + ':' + rev}
-      className="hrs"
+      className={'hrs' + (total ? ' on' : '')}
       type="text"
       inputMode="decimal"
       aria-label={label}
@@ -163,7 +163,7 @@ export default function Week() {
                 <thead>
                   <tr>
                     <th>Task or charge code</th>
-                    {dates.map((d, i) => <th key={d} className={'num' + (i > 4 ? ' weekend' : '')}>{fmtDay(d)}</th>)}
+                    {dates.map((d, i) => <th key={d} className={'num' + (i > 4 ? ' weekend' : '') + (d === today ? ' today' : '')}>{fmtDay(d)}</th>)}
                     <th className="num">Total</th>
                   </tr>
                 </thead>
@@ -175,7 +175,7 @@ export default function Week() {
                     return (
                       <tr key={key}>
                         <td>{name}<br /><span className="hint">{sub}</span></td>
-                        {dates.map((d, i) => <td key={d} className={'num' + (i > 4 ? ' weekend' : '')}>{cell(key, d)}</td>)}
+                        {dates.map((d, i) => <td key={d} className={'num' + (i > 4 ? ' weekend' : '') + (d === today ? ' today' : '')}>{cell(key, d)}</td>)}
                         <td className="num">{toHours(total)}</td>
                       </tr>
                     )

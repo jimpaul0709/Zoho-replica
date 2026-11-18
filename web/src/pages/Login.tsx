@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { get, post, token, type S } from '../api'
-import { Banner } from '../ui'
+import { Banner, ThemeToggle } from '../ui'
 
 export default function Login({ onSignedIn }: { onSignedIn: (me: S['MeOut']) => void }) {
   const [email, setEmail] = useState('')
@@ -15,7 +15,7 @@ export default function Login({ onSignedIn }: { onSignedIn: (me: S['MeOut']) => 
     try {
       token.set((await post<S['LoginOut']>('/auth/login', { email, password })).token)
       onSignedIn(await get<S['MeOut']>('/auth/me'))
-      if (!location.hash || location.hash === '#login') location.hash = 'week'
+      if (!location.hash || location.hash === '#login') location.hash = 'home'
     } catch (err) {
       token.clear()
       setError((err as Error).message)
@@ -26,6 +26,7 @@ export default function Login({ onSignedIn }: { onSignedIn: (me: S['MeOut']) => 
 
   return (
     <div className="login-wrap" style={{ margin: 0 }}>
+      <div className="corner"><ThemeToggle /></div>
       <aside className="brand-pane">
         <h2>Time, leave and payslips in one place.</h2>
         <p>Log your week, ask for leave and open your payslip without switching between three tools.</p>

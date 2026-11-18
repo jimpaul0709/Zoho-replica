@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { get, post, fmtRange, type S } from '../api'
-import { Banner, Chip, Empty, Loading, Select, useLoad } from '../ui'
+import { Banner, Chip, DateField, Empty, Loading, Select, useLoad } from '../ui'
 
 export default function Leave() {
   const year = new Date().getFullYear()
@@ -41,14 +41,15 @@ export default function Leave() {
     <section style={{ display: 'grid', gap: 18 }}>
       <div className="head"><h2>Leave</h2></div>
       <Loading error={balances.error || types.error || requests.error} loading={balances.loading && !balances.data} />
-      <div className="card balances">
-        {(balances.data ?? []).map((b) => {
+      <div className="bal-cards">
+        {(balances.data ?? []).map((b, i) => {
           const total = b.opening + b.accrued + b.adjusted
           return (
-            <div className="bal-row" key={b.leave_type_id}>
-              <b>{b.leave_type}</b>
+            <div className="card bal-card" key={b.leave_type_id} style={{ ['--i' as string]: i }}>
+              <span className="hint">{b.leave_type}</span>
+              <span className="big">{b.available} <small>h left</small></span>
               <div className="meter"><i style={{ width: (total > 0 ? Math.max(0, (b.available / total) * 100) : 0) + '%' }} /></div>
-              <span className="hint"><b>{b.available}</b> of {total} hours left (8 hours = 1 day){b.pending ? ', ' + b.pending + ' pending' : ''}</span>
+              <span className="hint">of {total} h (8 h = 1 day){b.pending ? ', ' + b.pending + ' pending' : ''}</span>
             </div>
           )
         })}
@@ -62,8 +63,8 @@ export default function Leave() {
           <Select id="leave-type" label="Leave type" value={typeId} onChange={setTypeId} required
             options={(types.data ?? []).map((t) => ({ value: String(t.id), label: t.name }))} />
           <div className="grid2" style={{ gap: 10 }}>
-            <label className="field"><span>From</span><input id="leave-from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} required /></label>
-            <label className="field"><span>To</span><input id="leave-to" type="date" value={to} min={from} onChange={(e) => setTo(e.target.value)} /></label>
+            <DateField id="leave-from" label="From" value={from} onChange={(v) => { setFrom(v); if (to && to < v) setTo('') }} required />
+            <DateField id="leave-to" label="To (optional)" value={to} min={from} rangeFrom={from} onChange={setTo} />
           </div>
           <label className="field"><span>Reason (optional)</span><textarea id="leave-reason" value={reason} onChange={(e) => setReason(e.target.value)} /></label>
           {hitsBlackout.length > 0 && <Banner kind="warn">{hitsBlackout.map((b) => fmtRange(b.on_date, b.on_date) + ' is a blackout day (' + b.note + ')').join('; ')}</Banner>}

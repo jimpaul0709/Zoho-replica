@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { get, post, api, addDays, iso, mondayOf, type S } from '../api'
-import { Banner, Loading, Select, UserSelect, useLoad } from '../ui'
+import { get, post, api, addDays, iso, mondayOf, parseDate, type S } from '../api'
+import { Banner, DateField, Loading, Select, UserSelect, useLoad } from '../ui'
 
 type Msg = { kind: 'ok' | 'bad'; text: string } | undefined
 
@@ -98,10 +98,12 @@ function TimeCorrections() {
   return (
     <div className="card">
       {msg && <Banner kind={msg.kind}>{msg.text}</Banner>}
+      <div className="sec"><h3>Which week</h3><span className="hint">Pick the employee and the Monday of the week to correct.</span></div>
       <div className="grid3">
         <UserSelect id="hr-user" label="Employee" value={userId} onChange={setUserId} />
-        <label className="field"><span>Week starting (Monday)</span><input id="hr-week" type="date" value={week} onChange={(e) => e.target.value && setWeek(mondayOf(new Date(e.target.value + 'T00:00')))} /></label>
+        <DateField id="hr-week" label="Week starting (Monday)" value={week} onChange={(v) => v && setWeek(mondayOf(parseDate(v)))} />
       </div>
+      <div className="sec"><h3>What to change</h3><span className="hint">Every correction is kept in the audit log.</span></div>
       <label className="field"><span>Reason (kept in the audit log, the employee sees it)</span><textarea id="hr-reason" value={reason} onChange={(e) => setReason(e.target.value)} /></label>
       <div className="grid3">
         <label className="field"><span>Entry id to change</span><input id="hr-entry" type="text" inputMode="numeric" value={entryId} onChange={(e) => setEntryId(e.target.value)} /></label>
@@ -168,7 +170,7 @@ function LeaveSetup() {
         <h3>Blackout days</h3>
         {(blackout.data ?? []).map((x) => <div key={x.id}>{x.on_date} · {x.note}</div>)}
         <div className="grid3">
-          <label className="field"><span>Date</span><input id="bo-date" type="date" value={day.on_date} min={addDays(mondayOf(new Date()), 0)} onChange={(e) => setDay({ ...day, on_date: e.target.value })} /></label>
+          <DateField id="bo-date" label="Date" value={day.on_date} min={addDays(mondayOf(new Date()), 0)} onChange={(v) => setDay({ ...day, on_date: v })} />
           <label className="field"><span>Note</span><input id="bo-note" type="text" value={day.note} onChange={(e) => setDay({ ...day, note: e.target.value })} /></label>
         </div>
         <div><button type="button" className="btn primary" disabled={!day.on_date || !day.note}
