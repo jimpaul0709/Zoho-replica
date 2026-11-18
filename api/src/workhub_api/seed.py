@@ -13,8 +13,10 @@ from datetime import date
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from workhub_api.auth import hash_password
 from workhub_api.models import (
     ChargeCode,
+    Credential,
     ChargeCodeTeam,
     Client,
     Holiday,
@@ -108,14 +110,30 @@ def seed(session: Session) -> bool:
     return True
 
 
+DEV_PASSWORD = "workhub-dev-1"  # sample users only; real accounts get their own from HR
+
+
+def ensure_passwords(session: Session) -> int:
+    """Give every user without a password the dev password. Returns how many were added."""
+    missing = session.scalars(
+        select(User).where(User.id.not_in(select(Credential.user_id))).order_by(User.id)
+    ).all()
+    session.add_all(
+        Credential(user_id=u.id, password_hash=hash_password(DEV_PASSWORD)) for u in missing
+    )
+    return len(missing)
+
+
 if __name__ == "__main__":
     from workhub_api.db import engine
 
     with Session(engine) as s:
         if seed(s):
-            s.commit()
-            print("Seeded. Use these ids as X-User-Id (DEV_AUTH=true):")
-            for u in s.scalars(select(User).order_by(User.id)):
-                print(f"  {u.id:>3}  {u.employee_code}  {u.name:<6} manager_id={u.manager_id}")
+            print("Seeded sample data.")
         else:
-            print("Sample data is already there; nothing changed.")
+            print("Sample data is already there.")
+        added = ensure_passwords(s)
+        s.commit()
+        print(f"Set the dev password on {added} user(s). Sign in with email + '{DEV_PASSWORD}':")
+        for u in s.scalars(select(User).order_by(User.id)):
+            print(f"  {u.id:>3}  {u.email:<20} {u.name:<6} manager_id={u.manager_id}")

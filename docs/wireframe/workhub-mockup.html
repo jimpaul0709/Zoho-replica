@@ -1,0 +1,666 @@
+<title>WorkHub Mockup</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600&display=swap">
+<style>
+/* Layout concept: clean SaaS shell. White sidebar with line icons, soft grey canvas, white cards with a light shadow, one indigo accent. Reviewer toolbar stays on top. */
+:root{
+  --bg:#f4f6fb;--panel:#ffffff;--sunken:#f7f8fc;--line:#e1e5ef;--line-soft:#eceff6;
+  --ink:#161b2e;--muted:#667089;
+  --accent:#3d5afe;--accent2:#7c5cff;--accent-ink:#ffffff;--accent-soft:#e9edff;
+  --ok:#12805c;--ok-soft:#dcf5ea;--warn:#945800;--warn-soft:#fff1d6;--bad:#b3261e;--bad-soft:#fde4e1;--note:#5b3ea8;--note-soft:#efe9fd;
+  --shadow:0 1px 2px rgba(22,27,46,.05),0 8px 24px rgba(22,27,46,.06);--r:12px;
+  --font:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --display:"Space Grotesk","Inter",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d1020;--panel:#161a2e;--sunken:#121528;--line:#2a2f48;--line-soft:#212640;--ink:#e8ebf7;--muted:#9ba3bd;
+  --accent:#7d93ff;--accent2:#a48cff;--accent-ink:#0b0f24;--accent-soft:#242c58;
+  --ok:#6fd1a0;--ok-soft:#173a2d;--warn:#f0c36a;--warn-soft:#3a2e12;--bad:#f39a92;--bad-soft:#40201d;--note:#b9a4f2;--note-soft:#2a2347;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1020;--panel:#161a2e;--sunken:#121528;--line:#2a2f48;--line-soft:#212640;--ink:#e8ebf7;--muted:#9ba3bd;
+  --accent:#7d93ff;--accent2:#a48cff;--accent-ink:#0b0f24;--accent-soft:#242c58;
+  --ok:#6fd1a0;--ok-soft:#173a2d;--warn:#f0c36a;--warn-soft:#3a2e12;--bad:#f39a92;--bad-soft:#40201d;--note:#b9a4f2;--note-soft:#2a2347;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font:14px/1.5 var(--font);padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-block:12px 40px}
+h1,h2,h3{font-family:var(--display);font-weight:600;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h2{font-size:22px}h3{font-size:15px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1220px;margin:0 auto;display:grid;gap:12px}
+svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:6px 4px;color:var(--muted);font-size:13px}
+.toolbar b{font-family:var(--display);color:var(--ink)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--panel)}
+.seg button{border:0;background:transparent;padding:5px 12px;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.toolbar label{display:inline-flex;gap:6px;align-items:center}
+.hint{color:var(--muted);font-size:12px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+.app{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden;min-height:600px;display:grid;grid-template-rows:auto 1fr;box-shadow:var(--shadow)}
+.topbar{display:flex;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
+.logo{font-family:var(--display);font-weight:600;font-size:17px;display:flex;align-items:center;gap:10px}
+.logo i{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;position:relative}
+.logo i::after{content:"";width:12px;height:12px;border:2px solid #fff;border-radius:50%;border-right-color:transparent;transform:rotate(30deg)}
+.spacer{flex:1}
+.search{display:flex;align-items:center;gap:8px;background:var(--sunken);border:1px solid var(--line);border-radius:10px;padding:6px 12px;color:var(--muted);min-width:200px}
+.search kbd{font:11px var(--mono);border:1px solid var(--line);border-radius:5px;padding:0 5px;margin-left:auto}
+.iconbtn{position:relative;width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--panel);display:grid;place-items:center;color:var(--muted)}
+.iconbtn .dot{position:absolute;top:7px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--bad);border:2px solid var(--panel)}
+.who{display:flex;align-items:center;gap:10px}
+.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;display:grid;place-items:center;font-size:12px;font-weight:600}
+.body{display:grid;grid-template-columns:224px minmax(0,1fr);min-height:0}
+.nav{border-right:1px solid var(--line);padding:14px 12px;display:flex;flex-direction:column;gap:2px;background:var(--panel)}
+.nav a{display:flex;gap:10px;align-items:center;padding:9px 11px;border-radius:10px;color:var(--muted);text-decoration:none;font-weight:500}
+.nav a .t{flex:1}
+.nav a:hover{background:var(--sunken);color:var(--ink)}
+.nav a[aria-current="page"]{background:var(--accent-soft);color:var(--accent)}
+.nav .grp{color:var(--muted);font-size:11px;letter-spacing:.09em;text-transform:uppercase;padding:14px 11px 5px}
+.count{background:var(--accent);color:var(--accent-ink);border-radius:10px;font-size:11px;padding:0 7px;font-weight:600}
+.nav[hidden]+main{grid-column:1/-1}
+main{padding:24px 28px 32px;min-width:0;display:grid;gap:18px;align-content:start;background:var(--bg)}
+.head{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.head .spacer{flex:1 1 20px}
+
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:9px;padding:7px 14px;font-weight:500;transition:background .15s,box-shadow .15s}
+.btn:hover{background:var(--sunken)}
+.btn.primary{background:linear-gradient(180deg,var(--accent),color-mix(in srgb,var(--accent) 85%,#000));border-color:transparent;color:var(--accent-ink);box-shadow:0 1px 2px rgba(61,90,254,.35)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.danger{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,var(--line))}
+.btn.sm{padding:3px 10px;font-size:13px}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.field{display:grid;gap:5px}
+.field>span{font-size:12px;color:var(--muted);font-weight:500}
+input[type="text"],input[type="email"],input[type="password"],input[type="date"],select,textarea{width:100%;border:1px solid var(--line);background:var(--panel);border-radius:9px;padding:8px 11px}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+textarea{min-height:76px;resize:vertical}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:600;background:var(--sunken);border:1px solid var(--line);white-space:nowrap;color:var(--muted)}
+.chip::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.chip.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.chip.warn{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.chip.bad{background:var(--bad-soft);color:var(--bad);border-color:transparent}
+.chip.info{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.card{border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;background:var(--panel);display:grid;gap:14px;align-content:start;min-width:0;box-shadow:var(--shadow)}
+.card.flat{background:var(--sunken);box-shadow:none}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:18px}
+.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+.banner{border-radius:10px;padding:10px 14px;border:1px solid transparent;display:flex;gap:10px;align-items:flex-start}
+.banner.warn{background:var(--warn-soft);color:var(--warn)}.banner.bad{background:var(--bad-soft);color:var(--bad)}
+.banner.info{background:var(--accent-soft);color:var(--accent)}.banner.ok{background:var(--ok-soft);color:var(--ok)}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{border:0;border-bottom:1px solid var(--line-soft);padding:10px 12px;text-align:left;vertical-align:middle}
+th{font-weight:600;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;background:transparent}
+tbody tr:hover td{background:var(--sunken)}
+tbody tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right}
+td.weekend,th.weekend{color:var(--muted)}
+tr.total td{font-weight:700;border-top:2px solid var(--line);background:transparent}
+tr.total:hover td{background:transparent}
+td input.hrs{width:58px;text-align:center;padding:5px 6px;border-radius:8px;background:var(--sunken);font-weight:500}
+td.short{color:var(--warn)}td.short::after{content:" \25BE";font-size:10px}
+td.flag{background:var(--bad-soft)!important}
+.big{font-family:var(--display);font-size:30px;font-weight:600;line-height:1.1}
+.big .hint{font-size:13px;font-weight:400;font-family:var(--font)}
+.stat{gap:4px}
+.bars{display:flex;gap:10px;align-items:flex-end;height:74px;position:relative}
+.bars::before{content:"";position:absolute;left:0;right:0;top:0;border-top:1px dashed var(--muted);opacity:.5}
+#grid td.num,#grid th.num{text-align:center}
+td{white-space:nowrap}
+#grid td:first-child,#apDays td:nth-child(2){white-space:normal;min-width:170px}
+.bcol{flex:1;display:grid;grid-template-rows:1fr auto;gap:4px;height:100%;text-align:center;font-size:11px;color:var(--muted)}
+.bfill{align-self:end;width:100%;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,var(--accent2),var(--accent));min-height:3px}
+.bfill.low{background:var(--warn);opacity:.7}
+.ringrow{display:flex;align-items:center;gap:14px}
+.ring{--p:50;width:64px;height:64px;border-radius:50%;background:conic-gradient(var(--accent) calc(var(--p)*1%),var(--line-soft) 0);display:grid;place-items:center;flex:none}
+.ring b{width:46px;height:46px;border-radius:50%;background:var(--panel);display:grid;place-items:center;font-family:var(--display);font-size:18px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tabs button{border:0;background:none;padding:9px 14px;border-bottom:2px solid transparent;margin-bottom:-1px;color:var(--muted);font-weight:500}
+.tabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.pending{background:var(--note-soft);color:var(--note);border-radius:20px;padding:1px 9px;font-size:11px;font-weight:600}
+.placeholder{border:1.5px dashed var(--line);background:var(--sunken);border-radius:var(--r);display:grid;place-items:center;color:var(--muted);min-height:120px;text-align:center;padding:16px}
+.who2{display:inline-flex;align-items:center;gap:10px;font-weight:500}
+.av{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;font-style:normal;color:#fff;flex:none}
+.c1{background:#5b7cfa}.c2{background:#d9779c}.c3{background:#3aa38c}.c4{background:#d19a2b}
+.doc{background:#fff;color:#1d2433;border:1px solid var(--line);border-radius:6px;padding:26px 28px;min-height:380px;display:grid;gap:10px;align-content:start;box-shadow:var(--shadow);max-width:560px;margin:0 auto;width:100%}
+.doc .ln{height:8px;border-radius:4px;background:#e4e8f1}.doc .ln.s{width:55%}.doc .ln.m{width:78%}
+.doc .tt{display:flex;justify-content:space-between;font-weight:700;border-bottom:2px solid #1d2433;padding-bottom:8px}
+.doc .kv{display:flex;justify-content:space-between;font-size:13px;border-bottom:1px solid #eceff6;padding:6px 0}
+
+.api{display:none;font-family:var(--mono);font-size:11.5px;background:var(--note-soft);color:var(--note);border-radius:6px;padding:3px 9px;width:fit-content;max-width:100%;overflow-wrap:anywhere}
+.show-api .api{display:block}
+.states{display:none}.show-api .states{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.states span{color:var(--muted);font-size:12px}
+
+[data-screen]{display:none}
+[data-screen].on{display:grid;gap:18px;animation:in .25s ease both}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.login-wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);min-height:600px;margin:-24px -28px -32px}
+.brand-pane{background:linear-gradient(145deg,#2a3fd1,#6b4df0 60%,#9a6cff);color:#fff;padding:48px;display:grid;align-content:center;gap:22px}
+.brand-pane h2{font-size:34px;line-height:1.15;color:#fff}
+.brand-pane p{margin:0;opacity:.85;max-width:38ch}
+.brand-pane ul{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+.brand-pane li{display:flex;gap:10px;align-items:center;background:rgba(255,255,255,.13);border-radius:10px;padding:10px 14px}
+.login-side{display:grid;place-items:center;padding:28px;background:var(--panel)}
+.login{width:min(380px,100%);display:grid;gap:14px;box-shadow:none;border:0;padding:0}
+.modal-back{position:fixed;inset:0;background:rgba(10,12,24,.5);display:grid;place-items:center;padding:16px;z-index:20}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;width:min(450px,100%);display:grid;gap:14px;box-shadow:var(--shadow)}
+.notes{display:grid;gap:8px;padding-left:18px;margin:0}
+.stat.wide{grid-column:span 2}
+
+@media (max-width:760px){
+  .body{grid-template-columns:1fr}
+  .nav{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);padding:8px}
+  .nav a{white-space:nowrap}.nav .grp{display:none}
+  main{padding:16px 14px 24px}
+  .search{display:none}
+  .login-wrap{grid-template-columns:1fr;margin:-16px -14px -24px}.brand-pane{display:none}
+}
+@media (max-width:560px){.stat.wide{grid-column:auto}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap" id="root">
+  <div class="toolbar" role="group" aria-label="Wireframe controls">
+    <b>WorkHub mockup</b>
+    <span class="row"><span class="hint">View as</span>
+      <span class="seg" id="roleSeg">
+        <button type="button" data-role="employee" aria-pressed="true">Employee</button>
+        <button type="button" data-role="manager" aria-pressed="false">Manager</button>
+        <button type="button" data-role="hr" aria-pressed="false">HR</button>
+      </span>
+    </span>
+    <label for="apiToggle"><input type="checkbox" id="apiToggle"> Show API and state notes</label>
+    <span class="hint">Names, numbers and dates are examples.</span>
+  </div>
+
+  <div class="app" id="app">
+    <header class="topbar">
+      <div class="logo"><i></i>WorkHub</div>
+      <span class="spacer"></span>
+      <div class="search" id="search" hidden><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Search <kbd>/</kbd></div>
+      <button type="button" class="iconbtn" id="bell" aria-label="Notifications" hidden><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 1112 0v5l1.5 2h-15zM10 21h4"/></svg><span class="dot"></span></button>
+      <div class="who" id="who" hidden>
+        <span class="avatar" id="avatar">AK</span>
+        <span><span id="whoName">Asha Kumar</span><br><span class="hint" id="whoRole">Employee</span></span>
+        <button type="button" class="btn sm" data-go="password">Change password</button>
+        <button type="button" class="btn sm" data-action="logout">Sign out</button>
+      </div>
+    </header>
+
+    <div class="body">
+      <nav class="nav" id="nav" aria-label="Main" hidden>
+        <div class="grp">Me</div>
+        <a href="#week" data-nav="week"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg><span class="t">Week</span></a>
+        <a href="#leave" data-nav="leave"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20c0-7 5-13 16-14-1 9-7 14-14 14"/><path d="M4 20 14 10"/></svg><span class="t">Leave</span></a>
+        <a href="#payslips" data-nav="payslips"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="3"/><circle cx="12" cy="12" r="2.5"/></svg><span class="t">Payslips</span><span class="pending">soon</span></a>
+        <div class="grp" data-need="manager">Manager</div>
+        <a href="#approvals" data-nav="approvals" data-need="manager"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4L19 6"/></svg><span class="t">Approvals</span><span class="count">4</span></a>
+        <div class="grp" data-need="hr">HR</div>
+        <a href="#hr" data-nav="hr" data-need="hr"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-4 3-6 6.5-6s6.5 2 6.5 6M17 11a3 3 0 100-6M21.5 19c0-3-1.5-4.5-3.5-5"/></svg><span class="t">HR admin</span></a>
+        <div class="grp">Review</div>
+        <a href="#notes" data-nav="notes"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 114 2c-1 .7-1.5 1.2-1.5 2.5M12 17.5v.1"/></svg><span class="t">Decisions</span></a>
+      </nav>
+
+      <main>
+        <!-- LOGIN -->
+        <section data-screen="login">
+          <div class="login-wrap">
+            <aside class="brand-pane"><h2>Time, leave and payslips in one place.</h2><p>Log your week, ask for leave and open your payslip without switching between three tools.</p><ul><li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>Log and submit your week in minutes</li><li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4L19 6"/></svg>Managers approve from one inbox</li><li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="3"/><circle cx="12" cy="12" r="2.5"/></svg>Payslips ready the day HR publishes</li></ul></aside>
+            <div class="login-side"><form class="card login" id="loginForm" novalidate>
+              <div><h2>Sign in</h2><div class="hint">Use your Ampera email and password.</div></div>
+              <div class="banner bad" id="loginError" hidden role="alert">Email or password is wrong. Check both and try again.</div>
+              <div class="banner warn" id="loginLock" hidden role="alert">Too many attempts. Try again in 15 minutes, or ask HR to reset your password.</div>
+              <label class="field"><span>Work email</span><input type="email" id="email" value="asha.kumar@ampera.example" autocomplete="username"></label>
+              <label class="field"><span>Password</span><input type="password" id="pw" value="password" autocomplete="current-password"></label>
+              <button class="btn primary" type="submit">Sign in</button>
+              <button class="btn" type="button" disabled title="Planned for version 2">Sign in with Microsoft (later)</button>
+              <div class="hint">No account or forgot your password? HR sets and resets passwords.</div>
+              <div class="api">POST /auth/login → token · GET /auth/me</div>
+              <div class="states"><span>States:</span>
+                <button type="button" class="btn sm" data-action="loginerr">wrong password</button>
+                <button type="button" class="btn sm" data-action="loginlock">locked</button>
+                <span>loading = button shows "Signing in…" and is disabled</span></div>
+            </form></div>
+          </div>
+        </section>
+
+        <!-- CHANGE PASSWORD -->
+        <section data-screen="password">
+          <div class="head"><h2>Change password</h2></div>
+          <form class="card" style="max-width:420px" onsubmit="return false">
+            <label class="field"><span>Current password</span><input type="password" value="••••••••"></label>
+            <label class="field"><span>New password</span><input type="password"><span class="hint">At least 10 characters.</span></label>
+            <label class="field"><span>Repeat new password</span><input type="password"></label>
+            <div class="row"><button class="btn primary" type="button" data-action="toast">Save password</button><button class="btn" type="button" data-go="week">Cancel</button></div>
+            <div class="api">POST /auth/password</div>
+            <div class="states"><span>States: first sign-in with a HR-set password forces this screen (must_change); wrong current password shows an inline error.</span></div>
+          </form>
+        </section>
+
+        <!-- WEEK -->
+        <section data-screen="week">
+          <div class="head">
+            <h2>My week</h2>
+            <span class="row"><button class="btn sm" type="button" aria-label="Previous week">‹</button>
+              <b>Mon 16 – Sun 22 Nov 2026</b>
+              <button class="btn sm" type="button" aria-label="Next week">›</button>
+              <button class="btn sm" type="button">This week</button></span>
+            <span class="spacer"></span>
+            <span class="seg" id="viewSeg" aria-label="Week view"><button type="button" data-view="grid" aria-pressed="true">Grid</button><button type="button" data-view="day" aria-pressed="false">Day</button></span>
+            <span class="chip" id="weekChip">Draft</span>
+          </div>
+          <div class="api">GET /time/week?on=2026-11-18</div>
+          <div class="states"><span>Preview a status:</span>
+            <button class="btn sm" type="button" data-weekstate="draft">Draft</button>
+            <button class="btn sm" type="button" data-weekstate="submitted">Submitted</button>
+            <button class="btn sm" type="button" data-weekstate="approved">Approved</button>
+            <button class="btn sm" type="button" data-weekstate="sentback">Sent back</button>
+            <span>· loading = skeleton rows · error = banner with Retry</span></div>
+
+          <div class="banner bad" id="sentBackBanner" hidden role="alert">
+            <div><b>Sent back by Ravi Menon on 19 Nov.</b> "Thursday is missing the client call. Add it and submit again." <br><span class="hint" style="color:inherit">Highlighted days need a change.</span></div>
+          </div>
+          <div class="banner info" id="submittedBanner" hidden>Waiting for Ravi Menon to approve. You can't edit entries until it is approved or sent back.</div>
+          <div class="banner ok" id="approvedBanner" hidden>Approved by Ravi Menon on 19 Nov. To change anything, send an edit request.</div>
+
+          <div class="grid4" id="stats">
+            <div class="card stat"><span class="hint">Logged this week</span><span class="big"><span id="stHours">0</span> h</span><span class="hint">of 40 h expected</span></div>
+            <div class="card stat"><span class="hint">Still to log</span><span class="big"><span id="stShort">0</span> h</span><span class="hint">Thu and Fri are empty</span></div>
+            <div class="card stat wide"><span class="hint">Hours per day (dashed line = 8 h)</span><div class="bars" id="bars"></div></div>
+          </div>
+          <div class="card flat" id="dayView" hidden>
+            <div class="row"><button class="btn sm" type="button" aria-label="Previous day">‹</button><b>Wed 18 Nov</b><button class="btn sm" type="button" aria-label="Next day">›</button><span class="spacer" style="flex:1"></span><span class="hint">Day total 8 h</span></div>
+            <label class="field"><span>WH-101 · Week grid screen (hours)</span><input type="text" inputmode="decimal" value="4"></label>
+            <label class="field"><span>WH-104 · Sign-in (hours)</span><input type="text" inputmode="decimal" value="3"></label>
+            <label class="field"><span>Internal meetings (hours)</span><input type="text" inputmode="decimal" value="1"></label>
+            <button class="btn" type="button" data-action="addrow">+ Add task or charge code</button>
+            <div class="hint">Phone default. Switch to Grid to see the whole week; the grid scrolls sideways.</div>
+          </div>
+          <div class="card scroll" id="gridCard">
+            <table id="grid">
+              <thead><tr><th>Task or charge code</th><th class="num">Mon 16</th><th class="num">Tue 17</th><th class="num">Wed 18</th><th class="num">Thu 19</th><th class="num">Fri 20</th><th class="num weekend">Sat 21</th><th class="num weekend">Sun 22</th><th class="num">Total</th></tr></thead>
+              <tbody>
+                <tr data-r><td>WH-101 · Week grid screen<br><span class="hint">WorkHub</span></td><td class="num"><input class="hrs" type="text" value="4"></td><td class="num"><input class="hrs" type="text" value="3"></td><td class="num"><input class="hrs" type="text" value="4"></td><td class="num" data-d="3"><input class="hrs" type="text" value="0"></td><td class="num" data-d="4"><input class="hrs" type="text" value="0"></td><td class="weekend num"><input class="hrs" type="text" value="0"></td><td class="weekend num"><input class="hrs" type="text" value="0"></td><td class="num rt">0</td></tr>
+                <tr data-r><td>WH-104 · Sign-in<br><span class="hint">WorkHub</span></td><td class="num"><input class="hrs" type="text" value="3"></td><td class="num"><input class="hrs" type="text" value="4"></td><td class="num"><input class="hrs" type="text" value="3"></td><td class="num" data-d="3"><input class="hrs" type="text" value="0"></td><td class="num" data-d="4"><input class="hrs" type="text" value="0"></td><td class="weekend num"><input class="hrs" type="text" value="0"></td><td class="weekend num"><input class="hrs" type="text" value="0"></td><td class="num rt">0</td></tr>
+                <tr data-r><td>Internal meetings<br><span class="hint">Charge code</span></td><td class="num"><input class="hrs" type="text" value="1"></td><td class="num"><input class="hrs" type="text" value="1"></td><td class="num"><input class="hrs" type="text" value="1"></td><td class="num" data-d="3"><input class="hrs" type="text" value="0"></td><td class="num" data-d="4"><input class="hrs" type="text" value="0"></td><td class="weekend num"><input class="hrs" type="text" value="0"></td><td class="weekend num"><input class="hrs" type="text" value="0"></td><td class="num rt">0</td></tr>
+              </tbody>
+              <tfoot><tr class="total" id="totalRow"><td>Day total <span class="hint">(8 h expected per weekday)</span></td><td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td><td class="num" id="grand">0</td></tr></tfoot>
+            </table>
+          </div>
+          <div class="row">
+            <button class="btn" type="button" data-action="addrow" id="addBtn">+ Add task or charge code</button>
+            <span class="spacer" style="flex:1"></span>
+            <span class="hint" id="weekSum"></span>
+            <button class="btn" type="button" id="editReqBtn" hidden data-action="editreq">Request edit</button>
+            <button class="btn primary" type="button" id="submitBtn" data-action="submitweek">Submit week for approval</button>
+          </div>
+          <div class="api">POST /time/entries · PATCH /time/entries/{id} · DELETE /time/entries/{id} · POST /time/weeks/{week_start}/submit · POST /time/weeks/{week_start}/edit-requests</div>
+        </section>
+
+        <!-- APPROVALS -->
+        <section data-screen="approvals">
+          <div class="head"><h2>Approvals</h2><span class="spacer"></span>
+            <button class="btn" type="button" data-action="delegation">Delegate while I'm away</button></div>
+          <div class="tabs" role="tablist"><button type="button" role="tab" aria-selected="true" data-aptab="time">Timesheets <span class="count">3</span></button><button type="button" role="tab" aria-selected="false" data-aptab="leave">Leave <span class="count">1</span></button></div>
+          <div id="apList">
+            <div class="card scroll">
+              <div class="row"><label><input type="checkbox" id="apAll"> Select all</label><button class="btn sm" type="button" data-action="bulk">Approve selected</button><span class="spacer" style="flex:1"></span><select aria-label="Filter" style="width:auto"><option>Waiting for me</option><option>All</option></select></div>
+              <table>
+                <thead><tr><th></th><th>Employee</th><th>Week</th><th class="num">Hours</th><th>Submitted</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                  <tr><td><input type="checkbox" class="apRow" aria-label="Select Asha Kumar"></td><td><span class="who2"><i class="av c1">AK</i>Asha Kumar</span></td><td>16–22 Nov</td><td class="num">40</td><td>Fri 20 Nov</td><td><span class="chip warn">Waiting</span></td><td><button class="btn sm" type="button" data-action="openap">Review</button></td></tr>
+                  <tr><td><input type="checkbox" class="apRow" aria-label="Select Dev Patel"></td><td><span class="who2"><i class="av c2">DP</i>Dev Patel</span></td><td>16–22 Nov</td><td class="num">38.5</td><td>Fri 20 Nov</td><td><span class="chip warn">Waiting</span></td><td><button class="btn sm" type="button" data-action="openap">Review</button></td></tr>
+                  <tr><td><input type="checkbox" class="apRow" aria-label="Select Meena Rao"></td><td><span class="who2"><i class="av c3">MR</i>Meena Rao</span></td><td>9–15 Nov</td><td class="num">32</td><td>Mon 16 Nov</td><td><span class="chip warn">Waiting</span> <span class="chip bad">8h short</span></td><td><button class="btn sm" type="button" data-action="openap">Review</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="api">GET /approvals/inbox · POST /approvals/bulk-approve</div>
+            <div class="states"><span>States: empty = "Nothing waiting for you." · loading = skeleton rows · bulk result lists any that failed.</span></div>
+          </div>
+          <div id="apLeave" hidden>
+            <div class="card scroll">
+              <table><thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th class="num">Days</th><th>Reason</th><th></th></tr></thead>
+              <tbody><tr><td><span class="who2"><i class="av c2">DP</i>Dev Patel</span></td><td>Annual leave</td><td>Mon 14 – Wed 16 Dec</td><td class="num">3</td><td>Family trip</td><td class="row"><button class="btn sm primary" type="button" data-action="toast">Approve</button><button class="btn sm" type="button" data-action="toast">Decline</button></td></tr></tbody></table>
+            </div>
+            <div class="banner info">Decided: leave approvals live in this inbox. Needs new backend: approve and decline endpoints for leave requests (the API only has list, withdraw and cancel today).</div>
+            <div class="api">(new) POST /leave/requests/{id}/approve · /decline</div>
+          </div>
+          <div id="apDetail" hidden>
+            <div class="head"><button class="btn sm" type="button" data-action="backap">‹ Back to inbox</button><h3>Asha Kumar · 16–22 Nov 2026</h3><span class="chip warn" id="apChip">Waiting</span></div>
+            <div class="card scroll">
+              <table>
+                <thead><tr><th>Day</th><th>Entries</th><th class="num">Hours</th><th>Decision</th><th></th></tr></thead>
+                <tbody id="apDays">
+                  <tr><td>Mon 16</td><td>WH-101 4 h · WH-104 3 h · Meetings 1 h</td><td class="num">8</td><td><span class="chip">Pending</span></td><td class="row"><button class="btn sm" type="button" data-day="ok">Approve</button><button class="btn sm" type="button" data-day="back">Send back</button></td></tr>
+                  <tr><td>Tue 17</td><td>WH-101 3 h · WH-104 4 h · Meetings 1 h</td><td class="num">8</td><td><span class="chip">Pending</span></td><td class="row"><button class="btn sm" type="button" data-day="ok">Approve</button><button class="btn sm" type="button" data-day="back">Send back</button></td></tr>
+                  <tr><td>Wed 18</td><td>WH-101 4 h · WH-104 3 h · Meetings 1 h</td><td class="num">8</td><td><span class="chip">Pending</span></td><td class="row"><button class="btn sm" type="button" data-day="ok">Approve</button><button class="btn sm" type="button" data-day="back">Send back</button></td></tr>
+                  <tr><td>Thu 19</td><td>WH-101 4 h · WH-104 3 h · Meetings 1 h</td><td class="num">8</td><td><span class="chip">Pending</span></td><td class="row"><button class="btn sm" type="button" data-day="ok">Approve</button><button class="btn sm" type="button" data-day="back">Send back</button></td></tr>
+                  <tr><td>Fri 20</td><td>WH-101 4 h · WH-104 3 h · Meetings 1 h</td><td class="num">8</td><td><span class="chip">Pending</span></td><td class="row"><button class="btn sm" type="button" data-day="ok">Approve</button><button class="btn sm" type="button" data-day="back">Send back</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="card flat" id="backBox" hidden>
+              <label class="field"><span>Reason for sending back <b id="backFor">the whole week</b> (required, the employee sees this)</span><textarea id="backReason" placeholder="What should they change?"></textarea></label>
+              <div class="banner bad" id="backErr" hidden role="alert">Add a reason before sending back.</div>
+              <div class="row"><button class="btn danger" type="button" data-action="confirmback">Send back</button><button class="btn" type="button" data-action="cancelback">Cancel</button></div>
+            </div>
+            <div class="row"><button class="btn danger" type="button" data-action="weekback">Send whole week back</button><button class="btn primary" type="button" data-action="approveweek">Approve whole week</button></div>
+            <div class="card flat"><h3>History</h3><div class="hint">Fri 20 Nov 17:42 · Asha Kumar submitted</div></div>
+            <div class="api">POST /approvals/{id}/approve · /send-back · /days/{date}/approve · /days/{date}/send-back · GET /approvals/{id}/history</div>
+          </div>
+        </section>
+
+        <!-- LEAVE -->
+        <section data-screen="leave">
+          <div class="head"><h2>Leave</h2><span class="spacer"></span><button class="btn primary" type="button" data-action="focusleave">Apply for leave</button></div>
+          <div class="grid4">
+            <div class="card"><span class="hint">Annual leave</span><div class="ringrow"><div class="ring" style="--p:67"><b>12</b></div><span class="hint">of 18 days left<br>6 used</span></div></div>
+            <div class="card"><span class="hint">Sick leave</span><div class="ringrow"><div class="ring" style="--p:88"><b>7</b></div><span class="hint">of 8 days left<br>1 used</span></div></div>
+            <div class="card"><span class="hint">Casual leave</span><div class="ringrow"><div class="ring" style="--p:83"><b>5</b></div><span class="hint">of 6 days left<br>1 used</span></div></div>
+            <div class="card"><span class="hint">Leave without pay</span><div class="ringrow"><div class="ring" style="--p:0"><b>0</b></div><span class="hint">days taken<br>no limit</span></div></div>
+          </div>
+          <div class="api">GET /leave/balances · GET /leave/types</div>
+          <div class="grid2">
+            <form class="card" id="leaveForm" onsubmit="return false">
+              <h3>Apply for leave</h3>
+              <label class="field"><span>Leave type</span><select id="lvType"><option>Annual leave</option><option>Sick leave</option><option>Casual leave</option><option>Leave without pay</option></select></label>
+              <div class="grid2" style="gap:10px"><label class="field"><span>From</span><input type="date" id="lvFrom" value="2026-12-23"></label><label class="field"><span>To</span><input type="date" id="lvTo" value="2026-12-24"></label></div>
+              <label class="row"><input type="checkbox"> Half day</label>
+              <label class="field"><span>Reason (optional)</span><textarea placeholder="Anything your manager should know"></textarea></label>
+              <div class="banner warn" id="blackoutWarn"><div><b>24 Dec is a blackout day.</b> Leave on this day needs HR approval. You will have 10 days left after this request.</div></div>
+              <div class="row"><button class="btn primary" type="button" data-action="toast">Submit request</button><button class="btn" type="button">Cancel</button></div>
+              <div class="api">POST /leave/requests · GET /leave/blackout-days</div>
+              <div class="states"><span>States: not enough balance = blocking error under the dates · overlap with existing request = inline error.</span></div>
+            </form>
+            <div class="card scroll">
+              <h3>My requests</h3>
+              <table>
+                <thead><tr><th>Type</th><th>Dates</th><th class="num">Days</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                  <tr><td>Annual</td><td>14–16 Dec</td><td class="num">3</td><td><span class="chip warn">Waiting</span></td><td><button class="btn sm" type="button" data-action="toast">Withdraw</button></td></tr>
+                  <tr><td>Sick</td><td>3 Nov</td><td class="num">1</td><td><span class="chip ok">Approved</span></td><td><button class="btn sm" type="button" data-action="toast">Cancel</button></td></tr>
+                  <tr><td>Casual</td><td>9 Oct</td><td class="num">1</td><td><span class="chip bad">Declined</span></td><td></td></tr>
+                </tbody>
+              </table>
+              <div class="api">GET /leave/requests · POST /leave/requests/{id}/withdraw · /cancel</div>
+              <div class="states"><span>Empty: "No leave requests yet."</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PAYSLIPS -->
+        <section data-screen="payslips">
+          <div class="head"><h2>Payslips</h2><span class="pending">Backend pending (milestone 3)</span></div>
+          <div class="grid2" style="grid-template-columns:minmax(220px,300px) minmax(0,1fr)">
+            <div class="card">
+              <label class="field"><span>Year</span><select><option>2026</option><option>2025</option></select></label>
+              <div class="nav" style="background:none;border:0;padding:0">
+                <a href="#payslips" aria-current="page">October 2026 <span class="chip ok">New</span></a>
+                <a href="#payslips">September 2026</a>
+                <a href="#payslips">August 2026</a>
+                <a href="#payslips">July 2026</a>
+              </div>
+              <div class="states"><span>Empty: "No payslips published yet." Only published months appear.</span></div>
+            </div>
+            <div class="card">
+              <div class="head"><h3>October 2026</h3><span class="spacer"></span><button class="btn" type="button" data-action="toast">Download PDF</button></div>
+              <div class="doc"><div class="tt"><span>Ampera Technologies</span><span>Payslip &middot; Oct 2026</span></div><div class="kv"><span>Employee</span><b>Asha Kumar (E-1042)</b></div><div class="kv"><span>Net pay</span><b>&bull;&bull;&bull;&bull;&bull;&bull;</b></div><div class="ln m"></div><div class="ln"></div><div class="ln s"></div><div class="ln m"></div><div class="ln"></div><div class="ln s"></div><div class="hint" style="color:#667089">Example layout. The real file is the PDF HR uploads.</div></div>
+            </div>
+          </div>
+          <div class="api">(new) GET /payslips · GET /payslips/{id}/file</div>
+        </section>
+
+        <!-- HR -->
+        <section data-screen="hr">
+          <div class="head"><h2>HR admin</h2></div>
+          <div class="tabs" role="tablist" id="hrTabs">
+            <button type="button" role="tab" aria-selected="true" data-hrtab="corr">Time corrections</button>
+            <button type="button" role="tab" aria-selected="false" data-hrtab="leave">Leave setup</button>
+            <button type="button" role="tab" aria-selected="false" data-hrtab="pay">Payslip batch <span class="pending">soon</span></button>
+            <button type="button" role="tab" aria-selected="false" data-hrtab="people">People</button>
+          </div>
+
+          <div data-hr="corr" class="card">
+            <div class="grid2" style="gap:10px"><label class="field"><span>Employee</span><select><option>Asha Kumar (E-1042)</option><option>Dev Patel (E-1058)</option></select></label>
+              <label class="field"><span>Week</span><select><option>16–22 Nov 2026 · Approved</option><option>9–15 Nov 2026 · Approved</option></select></label></div>
+            <div class="scroll"><table><thead><tr><th>Task</th><th>Day</th><th class="num">Hours</th><th></th></tr></thead>
+              <tbody><tr><td>WH-101</td><td>Wed 18</td><td class="num"><input class="hrs" style="width:64px;text-align:right" type="text" value="4"></td><td><button class="btn sm" type="button">Remove</button></td></tr></tbody></table></div>
+            <label class="field"><span>Reason for the correction (kept in the audit log)</span><textarea></textarea></label>
+            <div class="row"><button class="btn primary" type="button" data-action="toast">Save correction</button><button class="btn danger" type="button" data-action="toast">Send week back to employee</button></div>
+            <div class="api">POST /hr/users/{id}/weeks/{week}/corrections · /send-back</div>
+          </div>
+
+          <div data-hr="leave" class="grid2" hidden>
+            <div class="card scroll"><h3>Leave types</h3>
+              <table><thead><tr><th>Type</th><th class="num">Days / year</th><th>Paid</th></tr></thead><tbody><tr><td>Annual</td><td class="num">18</td><td>Yes</td></tr><tr><td>Sick</td><td class="num">8</td><td>Yes</td></tr><tr><td>Casual</td><td class="num">6</td><td>Yes</td></tr><tr><td>Leave without pay</td><td class="num">–</td><td>No</td></tr></tbody></table>
+              <button class="btn sm" type="button" style="width:fit-content">+ Add leave type</button>
+              <div class="api">GET/POST /leave/types</div></div>
+            <div class="card scroll"><h3>Opening balances</h3>
+              <table><thead><tr><th>Employee</th><th>Type</th><th class="num">Days</th></tr></thead><tbody><tr><td><span class="who2"><i class="av c1">AK</i>Asha Kumar</span></td><td>Annual</td><td class="num"><input class="hrs" type="text" value="12"></td></tr><tr><td><span class="who2"><i class="av c2">DP</i>Dev Patel</span></td><td>Annual</td><td class="num"><input class="hrs" type="text" value="15"></td></tr></tbody></table>
+              <button class="btn sm primary" type="button" style="width:fit-content" data-action="toast">Save balances</button>
+              <div class="api">PUT/GET /leave/balances</div></div>
+            <div class="card scroll"><h3>Blackout days</h3>
+              <table><thead><tr><th>Date</th><th>Reason</th></tr></thead><tbody><tr><td>24 Dec 2026</td><td>Year-end release</td></tr></tbody></table>
+              <button class="btn sm" type="button" style="width:fit-content">+ Add blackout day</button>
+              <div class="api">GET/POST /leave/blackout-days</div></div>
+          </div>
+
+          <div data-hr="pay" class="card" hidden>
+            <span class="pending" style="width:fit-content">Backend pending (milestone 3)</span>
+            <div class="placeholder">Drop payslip PDFs here, or choose files<br><span class="hint">File name must start with the employee code, for example E-1042_Oct-2026.pdf</span></div>
+            <div class="scroll"><table><thead><tr><th>File</th><th>Matched to</th><th>Month</th><th>Status</th></tr></thead>
+              <tbody><tr><td>E-1042_Oct-2026.pdf</td><td><span class="who2"><i class="av c1">AK</i>Asha Kumar</span></td><td>Oct 2026</td><td><span class="chip ok">Matched</span></td></tr>
+              <tr><td>E-1058_Oct-2026.pdf</td><td><span class="who2"><i class="av c2">DP</i>Dev Patel</span></td><td>Oct 2026</td><td><span class="chip ok">Matched</span></td></tr>
+              <tr><td>scan0023.pdf</td><td>–</td><td>–</td><td><span class="chip bad">No employee code</span></td></tr></tbody></table></div>
+            <div class="row"><button class="btn primary" type="button" data-action="toast">Publish 2 matched payslips</button><span class="hint">Employees see them only after you publish.</span></div>
+          </div>
+
+          <div data-hr="people" class="card scroll" hidden>
+            <div class="row"><b>People</b><span class="spacer" style="flex:1"></span><button class="btn sm" type="button">+ Add person</button></div>
+            <table><thead><tr><th>Code</th><th>Name</th><th>Roles</th><th>Manager</th><th>Status</th><th></th></tr></thead>
+              <tbody><tr><td>E-1042</td><td><span class="who2"><i class="av c1">AK</i>Asha Kumar</span></td><td>Employee</td><td><span class="who2"><i class="av c4">RM</i>Ravi Menon</span></td><td><span class="chip ok">Active</span></td><td><button class="btn sm" type="button" data-action="toast">Set password</button></td></tr>
+              <tr><td>E-1007</td><td><span class="who2"><i class="av c4">RM</i>Ravi Menon</span></td><td>Employee, Manager</td><td>–</td><td><span class="chip ok">Active</span></td><td><button class="btn sm" type="button" data-action="toast">Set password</button></td></tr></tbody></table>
+            <div class="hint">Passwords are set by HR for now. A "must change on first sign-in" flag applies.</div>
+            <div class="api">(new) HR user list and set-password endpoints</div>
+          </div>
+        </section>
+
+        <!-- NOTES -->
+        <section data-screen="notes">
+          <div class="head"><h2>Open questions for review</h2></div>
+          <div class="card">
+            <ol class="notes">
+              <li><b>Decided:</b> hours are typed as decimals (4.5), shown as "h".</li>
+              <li><b>Decided:</b> leave approvals sit in the manager inbox; the backend needs leave approve and decline endpoints.</li>
+              <li>Should a manager also see the employee screens (Week, Leave)? The wireframe assumes yes.</li>
+              <li><b>Decided:</b> week screen has both views: Grid (scrolls sideways) and Day (one day at a time, default on phones).</li>
+              <li>Payslip PDF: show inline preview, or download only?</li>
+              <li>HR sets all passwords for now. Is a self-service reset link needed for release?</li>
+            </ol>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+</div>
+
+<div class="modal-back" id="modalBack" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle" id="modal"></div>
+</div>
+<div class="banner ok" id="toast" role="status" style="position:fixed;bottom:max(16px,env(safe-area-inset-bottom,0px));right:max(16px,env(safe-area-inset-right,0px));z-index:30" hidden>Saved (example only)</div>
+
+<script>
+(function () {
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var role = "employee", signedIn = false, weekState = "draft";
+  var people = { employee: ["Asha Kumar", "AK", "Employee"], manager: ["Ravi Menon", "RM", "Manager"], hr: ["Priya Nair", "PN", "HR"] };
+  var screens = ["login", "password", "week", "approvals", "leave", "payslips", "hr", "notes"];
+  var needs = { approvals: "manager", hr: "hr" };
+
+  function hasRole(need) { return !need || role === "hr" || role === need; }
+
+  function show(name) {
+    if (!signedIn && name !== "login" && name !== "notes") name = "login";
+    if (needs[name] && !hasRole(needs[name])) name = "week";
+    if (screens.indexOf(name) < 0) name = signedIn ? "week" : "login";
+    $$("[data-screen]").forEach(function (s) { s.classList.toggle("on", s.getAttribute("data-screen") === name); });
+    $$("[data-nav]").forEach(function (a) { a.setAttribute("aria-current", a.getAttribute("data-nav") === name ? "page" : "false"); });
+    $("#nav").hidden = !(signedIn || name === "notes");
+    if (location.hash !== "#" + name) history.replaceState(null, "", "#" + name);
+  }
+
+  function applyRole() {
+    var p = people[role];
+    $("#whoName").textContent = p[0]; $("#avatar").textContent = p[1]; $("#whoRole").textContent = p[2];
+    $("#who").hidden = !signedIn; $("#search").hidden = !signedIn; $("#bell").hidden = !signedIn;
+    $$("[data-need]").forEach(function (e) { e.hidden = !hasRole(e.getAttribute("data-need")); });
+    $$("#roleSeg button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-role") === role)); });
+  }
+
+  function fmt(h) { return String(Math.round(h * 100) / 100); }
+  function setView(v) {
+    $("#dayView").hidden = v !== "day"; $("#gridCard").hidden = v !== "grid";
+    $$("#viewSeg button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-view") === v)); });
+  }
+  if (window.matchMedia && matchMedia("(max-width: 760px)").matches) setView("day");
+  document.addEventListener("click", function (e) { var b = e.target.closest("[data-view]"); if (b) setView(b.getAttribute("data-view")); });
+  function recalc() {
+    var rows = $$("#grid tbody tr"), dayTot = [0, 0, 0, 0, 0, 0, 0], grand = 0;
+    rows.forEach(function (tr) {
+      var t = 0;
+      $$("input.hrs", tr).forEach(function (inp, i) { var v = parseFloat(inp.value) || 0; dayTot[i] += v; t += v; });
+      $(".rt", tr).textContent = fmt(t); grand += t;
+    });
+    var cells = $$("#totalRow td");
+    dayTot.forEach(function (v, i) {
+      var c = cells[i + 1]; c.textContent = fmt(v);
+      c.classList.toggle("short", i < 5 && v < 8);
+    });
+    $("#grand").textContent = fmt(grand);
+    $("#stHours").textContent = fmt(grand); $("#stShort").textContent = fmt(Math.max(0, 40 - grand));
+    $("#bars").innerHTML = dayTot.map(function (v, i) { return '<div class="bcol"><div class="bfill' + (v < 8 && i < 5 ? ' low' : '') + '" style="height:' + Math.min(100, v / 8 * 100) + '%"></div><span>' + "MTWTFSS".charAt(i) + '</span></div>'; }).join("");
+    $("#weekSum").textContent = fmt(grand) + " of 40 expected" + (grand < 40 ? " · " + fmt(40 - grand) + " short" : "");
+  }
+
+  function setWeek(s) {
+    weekState = s;
+    var chip = $("#weekChip"), map = { draft: ["Draft", ""], submitted: ["Submitted", "info"], approved: ["Approved", "ok"], sentback: ["Sent back", "bad"] };
+    chip.textContent = map[s][0]; chip.className = "chip " + map[s][1];
+    var locked = s === "submitted" || s === "approved";
+    $$("#grid input").forEach(function (i) { i.disabled = locked; });
+    $("#addBtn").disabled = locked;
+    $("#submitBtn").hidden = locked; $("#editReqBtn").hidden = s !== "approved";
+    $("#sentBackBanner").hidden = s !== "sentback"; $("#submittedBanner").hidden = s !== "submitted"; $("#approvedBanner").hidden = s !== "approved";
+    $$("#grid [data-d='3']").forEach(function (c) { c.classList.toggle("flag", s === "sentback"); });
+    $$("[data-weekstate]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-weekstate") === s)); });
+    recalc();
+  }
+
+  function toast(msg) {
+    var t = $("#toast"); t.textContent = msg || "Saved (example only)"; t.hidden = false;
+    clearTimeout(toast.t); toast.t = setTimeout(function () { t.hidden = true; }, 2200);
+  }
+
+  function modal(html) {
+    $("#modal").innerHTML = html; $("#modalBack").hidden = false;
+    var f = $("#modal input, #modal select, #modal button"); if (f) f.focus();
+  }
+  function closeModal() { $("#modalBack").hidden = true; }
+
+  var actions = {
+    logout: function () { signedIn = false; applyRole(); show("login"); },
+    loginerr: function () { $("#loginError").hidden = false; $("#loginLock").hidden = true; },
+    loginlock: function () { $("#loginLock").hidden = false; $("#loginError").hidden = true; },
+    toast: function () { toast(); },
+    submitweek: function () {
+      modal('<h3 id="mTitle">Submit this week?</h3><p>Hours: <b>' + $("#grand").textContent + '</b>. You can\'t edit entries after submitting.</p><div class="row"><button class="btn primary" type="button" data-action="dosubmit">Submit</button><button class="btn" type="button" data-action="close">Cancel</button></div>');
+    },
+    dosubmit: function () { closeModal(); setWeek("submitted"); toast("Week submitted"); },
+    close: closeModal,
+    editreq: function () {
+      modal('<h3 id="mTitle">Request an edit</h3><label class="field"><span>Which day and what changes?</span><textarea></textarea></label><div class="row"><button class="btn primary" type="button" data-action="doeditreq">Send request</button><button class="btn" type="button" data-action="close">Cancel</button></div><div class="api">POST /time/weeks/{week}/edit-requests</div>');
+    },
+    doeditreq: function () { closeModal(); toast("Edit request sent to Ravi Menon"); },
+    addrow: function () {
+      modal('<h3 id="mTitle">Add to this week</h3><label class="field"><span>Task or charge code</span><select><option>WH-105 · Approvals inbox</option><option>WH-110 · Leave screens</option><option>Charge code: Bench</option><option>Charge code: Training</option></select></label><div class="hint">Only tasks in projects you belong to are listed.</div><div class="row"><button class="btn primary" type="button" data-action="doadd">Add row</button><button class="btn" type="button" data-action="close">Cancel</button></div>');
+    },
+    doadd: function () {
+      var tr = document.createElement("tr"); tr.setAttribute("data-r", "");
+      var cells = '<td>WH-105 · Approvals inbox<br><span class="hint">WorkHub</span></td>';
+      for (var i = 0; i < 7; i++) cells += '<td class="num' + (i > 4 ? ' weekend' : '') + '"><input class="hrs" type="text" value="0"></td>';
+      tr.innerHTML = cells + '<td class="num rt">0</td>';
+      $("#grid tbody").appendChild(tr); closeModal(); recalc();
+    },
+    delegation: function () {
+      modal('<h3 id="mTitle">Delegate approvals</h3><label class="field"><span>Delegate to</span><select><option>Kiran Shah</option><option>Priya Nair</option></select></label><div class="grid2" style="gap:10px"><label class="field"><span>From</span><input type="date" value="2026-12-14"></label><label class="field"><span>Until</span><input type="date" value="2026-12-18"></label></div><div class="row"><button class="btn primary" type="button" data-action="dodelegate">Save</button><button class="btn" type="button" data-action="close">Cancel</button></div><div class="api">POST /delegations · GET /delegations · DELETE /delegations/{id}</div>');
+    },
+    dodelegate: function () { closeModal(); toast("Delegation saved"); },
+    bulk: function () {
+      var n = $$(".apRow").filter(function (c) { return c.checked; }).length;
+      toast(n ? n + " approved (example)" : "Select at least one week first");
+    },
+    openap: function () { $("#apList").hidden = true; $("#apDetail").hidden = false; $$(".tabs [data-aptab]").forEach(function (b) { b.parentNode.hidden = true; }); },
+    backap: function () { $("#apList").hidden = false; $("#apDetail").hidden = true; $$(".tabs [data-aptab]").forEach(function (b) { b.parentNode.hidden = false; }); },
+    weekback: function () { $("#backFor").textContent = "the whole week"; $("#backBox").hidden = false; $("#backReason").focus(); },
+    cancelback: function () { $("#backBox").hidden = true; $("#backErr").hidden = true; },
+    confirmback: function () {
+      if (!$("#backReason").value.trim()) { $("#backErr").hidden = false; return; }
+      $("#backErr").hidden = true; $("#backBox").hidden = true; $("#apChip").textContent = "Sent back"; $("#apChip").className = "chip bad"; toast("Sent back with your reason");
+    },
+    approveweek: function () { $("#apChip").textContent = "Approved"; $("#apChip").className = "chip ok"; $$("#apDays .chip").forEach(function (c) { c.textContent = "Approved"; c.className = "chip ok"; }); toast("Week approved"); },
+    focusleave: function () { $("#lvType").focus(); }
+  };
+
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest("[data-action],[data-go],[data-role],[data-weekstate],[data-aptab],[data-hrtab],[data-day]");
+    if (!t) return;
+    if (t.hasAttribute("data-action")) { var f = actions[t.getAttribute("data-action")]; if (f) f(); }
+    else if (t.hasAttribute("data-go")) show(t.getAttribute("data-go"));
+    else if (t.hasAttribute("data-role")) { role = t.getAttribute("data-role"); applyRole(); show((location.hash || "#login").slice(1)); }
+    else if (t.hasAttribute("data-weekstate")) setWeek(t.getAttribute("data-weekstate"));
+    else if (t.hasAttribute("data-aptab")) {
+      var leave = t.getAttribute("data-aptab") === "leave";
+      $$("[data-aptab]").forEach(function (b) { b.setAttribute("aria-selected", String(b === t)); });
+      $("#apList").hidden = leave; $("#apLeave").hidden = !leave; $("#apDetail").hidden = true;
+    }
+    else if (t.hasAttribute("data-hrtab")) {
+      var k = t.getAttribute("data-hrtab");
+      $$("[data-hrtab]").forEach(function (b) { b.setAttribute("aria-selected", String(b === t)); });
+      $$("[data-hr]").forEach(function (p) { p.hidden = p.getAttribute("data-hr") !== k; });
+    }
+    else if (t.hasAttribute("data-day")) {
+      var chip = $(".chip", t.closest("tr").children[3]);
+      if (t.getAttribute("data-day") === "ok") { chip.textContent = "Approved"; chip.className = "chip ok"; }
+      else { chip.textContent = "Sent back"; chip.className = "chip bad"; actions.weekback(); $("#backFor").textContent = t.closest("tr").children[0].textContent; }
+    }
+  });
+  $("#modalBack").addEventListener("click", function (e) { if (e.target === this) closeModal(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("#modalBack").hidden) closeModal(); });
+  $("#apiToggle").addEventListener("change", function () { $("#root").classList.toggle("show-api", this.checked); });
+  $("#apAll").addEventListener("change", function () { var on = this.checked; $$(".apRow").forEach(function (c) { c.checked = on; }); });
+  $("#grid").addEventListener("input", recalc);
+  $("#loginForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var btn = $("button[type=submit]", this); btn.textContent = "Signing in…"; btn.disabled = true;
+    setTimeout(function () {
+      btn.textContent = "Sign in"; btn.disabled = false;
+      $("#loginError").hidden = true; $("#loginLock").hidden = true;
+      signedIn = true; applyRole(); show(role === "manager" ? "approvals" : role === "hr" ? "hr" : "week");
+    }, 450);
+  });
+  window.addEventListener("hashchange", function () { show((location.hash || "#login").slice(1)); });
+
+  applyRole(); setWeek("draft");
+  show((location.hash || "#login").slice(1));
+})();
+</script>

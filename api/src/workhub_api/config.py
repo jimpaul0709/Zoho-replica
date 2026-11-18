@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     # X-User-Id header. Must be off in production.
     dev_auth: bool = False
 
+    # Where the web app runs (CORS). Vite's default port.
+    web_origin: str = "http://localhost:5173"
+
     @property
     def database_url(self) -> URL:
         # URL.create escapes special characters in the password.

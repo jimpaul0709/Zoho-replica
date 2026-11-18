@@ -335,6 +335,32 @@ class DayDecision(Stamped, Base):
     decided_by: Mapped[int] = _fk("app_user.id")
 
 
+# ---------- Sign-in version 1: email and password (migration 0006) ----------
+
+
+class Credential(Stamped, Base):
+    """A user's password. A user with no row here cannot sign in."""
+
+    __tablename__ = "credential"
+
+    user_id: Mapped[int] = _fk("app_user.id", unique=True)
+    password_hash: Mapped[str] = mapped_column(String(255))  # "scrypt$<salt hex>$<hash hex>"
+    must_change: Mapped[bool] = mapped_column(Boolean, server_default=text("false"))
+    failed_attempts: Mapped[int] = mapped_column(Integer, server_default="0")
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class AuthSession(Stamped, Base):
+    """One signed-in browser. Only the SHA-256 of the token is stored, never the token."""
+
+    __tablename__ = "auth_session"
+
+    user_id: Mapped[int] = _fk("app_user.id")
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
 # ---------- 3. Leave (WH-40, WH-41). Minutes; a full day is daily_expected_minutes ----------
 
 
