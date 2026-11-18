@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { api, get, post, fmtDay, fmtRange, addDays, toHours, type S } from '../api'
-import { Banner, Chip, Empty, Loading, initials, useLoad } from '../ui'
+import { Banner, Chip, Empty, Loading, UserSelect, initials, useLoad } from '../ui'
 
 type Item = S['InboxItem']
 const isTime = (i: Item) => i.subject_type !== 'leave'
@@ -171,7 +171,7 @@ function Delegations() {
         </div>
       ))}
       <div className="grid3">
-        <label className="field"><span>Delegate to (user id)</span><input id="deleg-to" inputMode="numeric" value={to} onChange={(e) => setTo(e.target.value)} type="text" /></label>
+        <UserSelect id="deleg-to" label="Delegate to" value={to} onChange={setTo} />
         <label className="field"><span>From</span><input id="deleg-from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></label>
         <label className="field"><span>Until</span><input id="deleg-until" type="date" value={until} onChange={(e) => setUntil(e.target.value)} /></label>
       </div>

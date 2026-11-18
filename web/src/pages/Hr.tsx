@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { get, post, api, addDays, mondayOf, type S } from '../api'
-import { Banner, Loading, useLoad } from '../ui'
+import { get, post, api, addDays, iso, mondayOf, type S } from '../api'
+import { Banner, Loading, UserSelect, useLoad } from '../ui'
 
 type Msg = { kind: 'ok' | 'bad'; text: string } | undefined
 
@@ -32,8 +32,56 @@ export default function Hr() {
       </div>
       {tab === 'time' && <TimeCorrections />}
       {tab === 'leave' && <LeaveSetup />}
-      {tab === 'pay' && <Banner>Payslip upload and publish are not built yet.</Banner>}
+      {tab === 'pay' && <PayslipBatch />}
     </section>
+  )
+}
+
+function PayslipBatch() {
+  const { msg, run } = useAction()
+  const last = new Date(); last.setDate(1); last.setMonth(last.getMonth() - 1)
+  const [month, setMonth] = useState(iso(last).slice(0, 7))
+  const [files, setFiles] = useState<File[]>([])
+  const [batch, setBatch] = useState<S['BatchOut']>()
+  const published = batch?.status === 'published'
+
+  return (
+    <div className="card">
+      {msg && <Banner kind={msg.kind}>{msg.text}</Banner>}
+      <div className="grid3">
+        <label className="field"><span>Month</span><input id="pay-month" type="month" value={month} onChange={(e) => { setMonth(e.target.value); setBatch(undefined) }} /></label>
+        <label className="field"><span>PDF files or one ZIP (named EMPLOYEECODE_anything.pdf)</span>
+          <input id="pay-files" type="file" multiple accept=".pdf,.zip" onChange={(e) => { setFiles(Array.from(e.target.files ?? [])); setBatch(undefined) }} /></label>
+      </div>
+      <div className="actions">
+        <button type="button" className="btn primary" disabled={!month || files.length === 0}
+          onClick={() => run(async () => {
+            const form = new FormData()
+            form.append('month', month)
+            files.forEach((f) => form.append('files', f))
+            setBatch(await post<S['BatchOut']>('/payslips/batches', form))
+          }, 'Checked the files. Review the matches below, then publish.')}>Upload and check</button>
+        {batch && !published && (
+          <button type="button" className="btn primary" disabled={batch.matched.length === 0}
+            onClick={() => run(async () => setBatch(await post<S['BatchOut']>('/payslips/batches/' + batch.id + '/publish')), 'Published. Employees can now see their payslip for ' + batch.month + '.')}>
+            Publish {batch.matched.length} payslip{batch.matched.length === 1 ? '' : 's'}
+          </button>
+        )}
+      </div>
+      <div className="hint">Nothing is visible to employees until you publish. A published month is locked. HR sees who each file matched, never the contents.</div>
+
+      {batch && (
+        <>
+          <h3>{batch.month} · <span className="hint">{batch.status}</span></h3>
+          <b>Matched ({batch.matched.length})</b>
+          {batch.matched.map((m) => <div key={m.filename}>{m.employee_code} · {m.name} <span className="hint">{m.filename}</span></div>)}
+          {batch.unmatched.length > 0 && <Banner kind="warn"><div><b>Not matched ({batch.unmatched.length}). These will not be published.</b>
+            {batch.unmatched.map((u) => <div key={u.filename}>{u.filename}: {u.reason}</div>)}</div></Banner>}
+          {batch.duplicates.length > 0 && <Banner kind="warn"><div><b>Two files for one employee ({batch.duplicates.length}). Check which was kept.</b>
+            {batch.duplicates.map((d) => <div key={d.employee_code}>{d.employee_code}: {d.filenames.join(', ')}</div>)}</div></Banner>}
+        </>
+      )}
+    </div>
   )
 }
 
@@ -51,7 +99,7 @@ function TimeCorrections() {
     <div className="card">
       {msg && <Banner kind={msg.kind}>{msg.text}</Banner>}
       <div className="grid3">
-        <label className="field"><span>Employee (user id)</span><input id="hr-user" type="text" inputMode="numeric" value={userId} onChange={(e) => setUserId(e.target.value)} /></label>
+        <UserSelect id="hr-user" label="Employee" value={userId} onChange={setUserId} />
         <label className="field"><span>Week starting (Monday)</span><input id="hr-week" type="date" value={week} onChange={(e) => e.target.value && setWeek(mondayOf(new Date(e.target.value + 'T00:00')))} /></label>
       </div>
       <label className="field"><span>Reason (kept in the audit log, the employee sees it)</span><textarea id="hr-reason" value={reason} onChange={(e) => setReason(e.target.value)} /></label>
@@ -111,7 +159,7 @@ function LeaveSetup() {
 
       <div className="card">
         <h3>Opening balance ({year})</h3>
-        <label className="field"><span>Employee (user id)</span><input id="bal-user" type="text" inputMode="numeric" value={b.user_id} onChange={(e) => setB({ ...b, user_id: e.target.value })} /></label>
+        <UserSelect id="bal-user" label="Employee" value={b.user_id} onChange={(v) => setB({ ...b, user_id: v })} />
         <label className="field"><span>Leave type</span>
           <select id="bal-type" value={b.leave_type_id} onChange={(e) => setB({ ...b, leave_type_id: e.target.value })}>
             <option value="">Choose…</option>

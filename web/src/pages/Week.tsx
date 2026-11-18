@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { api, get, post, addDays, fmtDay, fmtRange, iso, mondayOf, toHours, toMinutes, type S } from '../api'
 import { Banner, Chip, Loading, useLoad } from '../ui'
+import EditRequests from './EditRequests'
 
 type Entry = S['EntryOut']
 const DAYS = [0, 1, 2, 3, 4, 5, 6]
@@ -135,7 +136,7 @@ export default function Week() {
             </Banner>
           )}
           {wk.status === 'submitted' && <Banner>Submitted. Waiting for approval. You can still change entries until it is approved.</Banner>}
-          {locked && <Banner kind="ok">Approved. This week is locked; ask HR for a correction if something is wrong.</Banner>}
+          {locked && <Banner kind="ok">Approved. This week is locked; request an edit below if something is wrong.</Banner>}
 
           <div className="strip">
             <div><span className="hint">Logged this week</span><span className="big">{logged} h</span><span className="hint">of {EXPECTED_HOURS} h expected</span></div>
@@ -215,6 +216,7 @@ export default function Week() {
               <button type="button" className="btn primary" disabled={entries.length === 0} onClick={submit}>Submit week for approval</button>
             )}
           </div>
+          {locked && <EditRequests weekStart={weekStart} entries={entries} nameOf={(e) => label(keyOf(e))[0]} />}
         </>
       )}
     </section>
