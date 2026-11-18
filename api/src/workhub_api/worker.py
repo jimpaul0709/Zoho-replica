@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from workhub_api.db import engine
 from workhub_api.jobs import run_one
+from workhub_api.leave_accrual import ensure_leave_accrual
 from workhub_api.routing import ensure_housekeeping  # importing routing registers its handlers
 
 POLL_SECONDS = 5
@@ -35,7 +36,8 @@ def main() -> None:
             with Session(engine) as session:
                 ran = run_one(session)
                 if not ran:
-                    ensure_housekeeping(session)  # keeps the repeating job alive
+                    ensure_housekeeping(session)  # keeps the repeating jobs alive
+                    ensure_leave_accrual(session)
                     session.commit()
         except Exception:  # e.g. the database is briefly unreachable: log it and carry on
             log.exception("worker loop error")

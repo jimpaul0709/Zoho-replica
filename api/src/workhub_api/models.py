@@ -422,6 +422,22 @@ class LeaveBalance(Stamped, Base):
     adjusted: Mapped[int] = mapped_column(Integer, server_default="0")
 
 
+class LeaveCredit(Stamped, Base):
+    """Ledger of automatic credits, so the monthly job can safely run twice.
+
+    `key` is `accrual:2026-11` (a month's accrual) or `carry:2027` (carry-forward into leave year
+    2027). A credit is applied to the balance only when its row is newly inserted here.
+    """
+
+    __tablename__ = "leave_credit"
+    __table_args__ = (UniqueConstraint("user_id", "leave_type_id", "key"),)
+
+    user_id: Mapped[int] = _fk("app_user.id")
+    leave_type_id: Mapped[int] = _fk("leave_type.id")
+    key: Mapped[str] = mapped_column(String(20))
+    minutes: Mapped[int] = mapped_column(Integer)
+
+
 class LeaveRequest(Stamped, Base):
     __tablename__ = "leave_request"
     __table_args__ = (

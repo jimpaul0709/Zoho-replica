@@ -33,7 +33,7 @@ Version 2 moves to Microsoft Entra ID (`entra_auth.py` is built but not wired in
 | `POST /auth/password` | Change your own password (`current_password`, `new_password` of 8+ characters). Signs your other browsers out |
 | `POST /auth/logout` | Ends this session |
 
-Send the token on every other call as `Authorization: Bearer <token>`. A session lasts 7 days, and only a hash of the token is stored. A user with no `credential` row, or who is not `active`, cannot sign in. There is no way yet for HR to create users or set passwords except the seed script.
+Send the token on every other call as `Authorization: Bearer <token>`. A session lasts 7 days, and only a hash of the token is stored. A user with no `credential` row, or who is not `active`, cannot sign in. HR creates people and sets or resets passwords through `/admin/users` (see below); login returns `must_change` for a first or reset password.
 
 `DEV_AUTH=true` (in `.env`, or set by the tests) also accepts `X-User-Id: <app_user id>` with no password. It must be off in production. `current_user` in `db.py` is the one function every endpoint depends on.
 The web app's address for CORS is `WEB_ORIGIN` (default `http://localhost:5173`). Interactive docs at http://localhost:8000/docs.
@@ -134,6 +134,46 @@ The manager decides it in the same inbox (`GET /approvals/inbox` rows have a `le
 
 Not built yet: monthly accrual by the worker, year-end carry forward, comp-off, the team calendar, and the Zoho import.
 
+## Payslips (WH-50, WH-51)
+
+HR uploads a month, checks how the files matched, then publishes. Employees see and download only their own.
+
+| Call | What it does |
+|---|---|
+| `POST /payslips/batches` | **HR.** Multipart form: `month` (`2026-11`) and `files` (PDFs and/or ZIPs). A file is matched to an employee by the code at the start of its name, `<EMPLOYEE_CODE>_anything.pdf` (ignores case; folders inside a ZIP are ignored). Returns the report: `matched`, `unmatched` (with a reason: bad name, no such employee, not a PDF, too large) and `duplicates` (two files for one person; neither is kept). Uploading again to a draft month replaces it; a published month is locked (409) |
+| `GET /payslips/batches/{id}` | **HR.** The same report |
+| `POST /payslips/batches/{id}/publish` | **HR.** Makes it visible to employees. An empty batch (422) or one already published (409) is refused |
+| `GET /payslips/mine` | Your published payslips (`id`, `month`), newest first |
+| `GET /payslips/{id}/file` | The PDF, to its owner only. Anyone else (HR included) and anything unpublished gets 404. Every download is audited (`payslip`, `view`) |
+
+Limits: 10 MB per PDF and 200 MB per upload. A file must start with `%PDF` (checked by content, not by extension). The PDFs are stored in Postgres for now (a `shortcut:` comment in `models.py` says when to move them to object storage). Form 16 and letters are not built.
+
+## User administration (HR and admin)
+
+| Call | What it does |
+|---|---|
+| `POST /admin/users` | Create a person: `employee_code`, `name`, `email`, a first `password` (8+ characters) and optionally `designation`, `department`, `location_id`, `manager_id`, `joined_on`, `roles` (default `employee`). The person must change that password: login returns `must_change: true` until they do |
+| `GET /admin/users` | Everyone, with roles |
+| `PATCH /admin/users/{id}` | Change only the fields you send. A manager must be an active user and the chain can't loop. `active: false` records the exit date and signs the person out everywhere (you can't deactivate yourself) |
+| `PUT /admin/users/{id}/roles` | Set the roles |
+| `POST /admin/users/{id}/password` | Reset a password: forces a change, clears a lockout and signs the person out everywhere |
+
+Employee codes and emails are unique ignoring case. Only an **admin** can grant or remove the admin role or reset an admin's password, so HR can't make themselves an admin. Every change is audited, and no password or hash appears in a response or the audit log.
+
+## Org admin (HR and admin)
+
+Lists are replaced as a whole: what you send is what you get.
+
+| Call | What it does |
+|---|---|
+| `POST/GET /admin/locations`, `POST/GET /admin/holidays` (`?location_id=`), `DELETE /admin/holidays/{id}` | Locations and their holidays (one holiday per location per date) |
+| `POST/GET /admin/teams`, `PUT /admin/teams/{id}/members` (`user_ids`) | Teams and who is in them |
+| `POST/GET /admin/charge-codes`, `PATCH /admin/charge-codes/{id}` (`name`, `active`), `PUT /admin/charge-codes/{id}/teams` (`team_ids`) | Charge codes and the teams they are shared with (this decides what `GET /time/targets` offers) |
+| `POST/GET /admin/projects`, `PATCH /admin/projects/{id}`, `PUT /admin/projects/{id}/members`, `PUT /admin/projects/{id}/teams` | Projects. A new project gets the statuses Open, In progress, Done and a Backlog list. Members and the teams on a project decide who can see its tasks (`visibility.py`) |
+| `POST /projects/{id}/tasks` | Add a task (`title`, optional `description`). HR, an admin or that project's manager can. The key is `<project key>-T<n>` |
+
+Not built: clients and work orders, task owners, subtasks and comments, task editing.
+
 ## Roles (who can do what)
 
 Roles are employee, manager, hr, finance and admin, and a person can hold several. The API checks them (`permissions.py`); the UI only hides what a role can't open. No sign-in gets 401, a missing role gets 403.
@@ -143,7 +183,8 @@ Roles are employee, manager, hr, finance and admin, and a person can hold severa
 | Log time, submit your week, see your own inbox and delegations | any signed-in user |
 | Approve, send back, bulk approve, create a delegation | the **manager** role |
 | Be the delegate of a delegation | the **manager** role (checked when the delegation is created) |
-| HR, finance and admin only features (leave types, payslips, reports, settings, audit log) | not built yet. Use `Depends(require_roles("hr"))` when you add them |
+| Leave types and balances, payslip batches, `/admin/users`, `/admin/...` org data | the **hr** role (`/admin/...` also accepts **admin**, who alone can grant the admin role) |
+| Reports, settings, audit-log viewer | not built yet. Use `Depends(require_roles("hr"))` when you add them |
 
 On top of the role, approvals also check that the approval is **assigned to you** (your report's manager, a delegate, or the escalation target), and you can only touch your own time entries.
 
