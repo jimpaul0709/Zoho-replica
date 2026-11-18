@@ -79,28 +79,30 @@ export default function App() {
     location.hash = '' // back to the landing page
   }
   const page = (PAGES[route] ?? PAGES.week)()
+  const title = NAV.flatMap((g) => g.items).find(([id]) => id === route)?.[1] ?? 'Account'
 
   return (
     <div className="app">
-      <header className="topbar">
+      <nav className="nav" aria-label="Main">
         <div className="logo"><i />WorkHub</div>
-        <span className="spacer" />
-        <AccountMenu name={me.name} roles={me.roles} onSignOut={signOut} />
-      </header>
-      <div className="body">
-        <nav className="nav" aria-label="Main">
-          {NAV.map((g) => (
-            <div key={g.group} style={{ display: 'contents' }}>
-              <div className="grp">{g.group}</div>
-              {g.items.map(([id, label]) => (
-                <a key={id} href={'#' + id} aria-current={route === id ? 'page' : undefined}>
-                  <svg className="i" viewBox="0 0 24 24" aria-hidden="true"><path d={ICONS[id]} /></svg>
-                  <span className="t">{label}</span>
-                </a>
-              ))}
-            </div>
-          ))}
-        </nav>
+        {NAV.map((g) => (
+          <div key={g.group} style={{ display: 'contents' }}>
+            <div className="grp">{g.group}</div>
+            {g.items.map(([id, label]) => (
+              <a key={id} href={'#' + id} aria-current={route === id ? 'page' : undefined}>
+                <svg className="i" viewBox="0 0 24 24" aria-hidden="true"><path d={ICONS[id]} /></svg>
+                <span className="t">{label}</span>
+              </a>
+            ))}
+          </div>
+        ))}
+      </nav>
+      <div className="col">
+        <header className="topbar">
+          <span className="crumb">{title}</span>
+          <span className="spacer" />
+          <AccountMenu name={me.name} roles={me.roles} onSignOut={signOut} />
+        </header>
         <main>{page}</main>
       </div>
     </div>
