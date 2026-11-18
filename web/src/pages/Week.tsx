@@ -126,10 +126,10 @@ export default function Week() {
       {err && <Banner kind="bad">{err}</Banner>}
       {wk && (
         <>
-          {wk.status === 'sent_back' && (
+          {Object.keys(wk.day_reasons).length > 0 && (
             <Banner kind="bad">
               <div>
-                <b>This week was sent back.</b>
+                <b>Your manager sent time back for changes.</b>
                 {Object.entries(wk.day_reasons).map(([d, r]) => <div key={d}>{fmtDay(d)}: {r}</div>)}
               </div>
             </Banner>

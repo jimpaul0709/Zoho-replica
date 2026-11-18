@@ -55,6 +55,7 @@ class LoginBody(BaseModel):
 class LoginOut(BaseModel):
     token: str
     expires_at: datetime
+    must_change: bool  # a first or reset password: the web app should send them to change it
 
 
 class MeOut(BaseModel):
@@ -91,7 +92,7 @@ def login(body: LoginBody, session: SessionDep) -> LoginOut:
     expires = now + timedelta(days=SESSION_DAYS)
     session.add(AuthSession(user_id=user.id, token_hash=hash_token(token), expires_at=expires))
     session.commit()
-    return LoginOut(token=token, expires_at=expires)
+    return LoginOut(token=token, expires_at=expires, must_change=cred.must_change)
 
 
 def _bearer(authorization: str | None) -> str:

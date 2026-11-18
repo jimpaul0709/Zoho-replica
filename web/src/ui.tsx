@@ -31,7 +31,7 @@ export function Banner({ kind = 'info', children }: { kind?: 'info' | 'ok' | 'wa
 
 const TONE: Record<string, string> = {
   approved: 'ok', published: 'ok', active: 'ok',
-  submitted: 'warn', pending: 'warn', waiting: 'warn', requested: 'warn',
+  submitted: 'warn', pending: 'warn', waiting: 'warn', requested: 'warn', applied: 'warn',
   sent_back: 'bad', rejected: 'bad', declined: 'bad', cancelled: 'bad', withdrawn: 'bad',
 }
 export function Chip({ status }: { status: string }) {

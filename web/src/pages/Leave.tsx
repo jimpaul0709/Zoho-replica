@@ -48,7 +48,7 @@ export default function Leave() {
             <div className="bal-row" key={b.leave_type_id}>
               <b>{b.leave_type}</b>
               <div className="meter"><i style={{ width: (total > 0 ? Math.max(0, (b.available / total) * 100) : 0) + '%' }} /></div>
-              <span className="hint"><b>{b.available}</b> of {total} days left{b.pending ? ', ' + b.pending + ' pending' : ''}</span>
+              <span className="hint"><b>{b.available}</b> of {total} hours left (8 hours = 1 day){b.pending ? ', ' + b.pending + ' pending' : ''}</span>
             </div>
           )
         })}
@@ -86,7 +86,7 @@ export default function Leave() {
                   <td className="num">{r.hours}</td>
                   <td><Chip status={r.status} /></td>
                   <td>
-                    {r.status === 'pending' && <button type="button" className="btn sm" onClick={() => change(r.id, 'withdraw')}>Withdraw</button>}
+                    {r.status === 'applied' &&<button type="button" className="btn sm" onClick={() => change(r.id, 'withdraw')}>Withdraw</button>}
                     {r.status === 'approved' && <button type="button" className="btn sm" onClick={() => change(r.id, 'cancel')}>Cancel</button>}
                   </td>
                 </tr>

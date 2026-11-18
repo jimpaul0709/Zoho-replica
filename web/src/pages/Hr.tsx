@@ -98,8 +98,8 @@ function LeaveSetup() {
             {(targets.data?.charge_codes ?? []).map((c) => <option key={c.id} value={c.id}>{c.code} · {c.name}</option>)}
           </select></label>
         <div className="grid3">
-          <label className="field"><span>Days added per month</span><input id="lt-accrual" type="text" inputMode="decimal" value={t.accrual} onChange={(e) => setT({ ...t, accrual: e.target.value })} /></label>
-          <label className="field"><span>Carry forward cap (days)</span><input id="lt-cap" type="text" inputMode="decimal" value={t.cap} onChange={(e) => setT({ ...t, cap: e.target.value })} /></label>
+          <label className="field"><span>Hours added per month</span><input id="lt-accrual" type="text" inputMode="decimal" value={t.accrual} onChange={(e) => setT({ ...t, accrual: e.target.value })} /></label>
+          <label className="field"><span>Carry forward cap (hours)</span><input id="lt-cap" type="text" inputMode="decimal" value={t.cap} onChange={(e) => setT({ ...t, cap: e.target.value })} /></label>
         </div>
         <label className="row"><input type="checkbox" checked={t.paid} onChange={(e) => setT({ ...t, paid: e.target.checked })} /> Paid leave</label>
         <div><button type="button" className="btn primary" disabled={!t.name || !t.charge_code_id}
@@ -117,7 +117,7 @@ function LeaveSetup() {
             <option value="">Choose…</option>
             {(types.data ?? []).map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
           </select></label>
-        <label className="field"><span>Opening days</span><input id="bal-days" type="text" inputMode="decimal" value={b.opening} onChange={(e) => setB({ ...b, opening: e.target.value })} /></label>
+        <label className="field"><span>Opening hours (8 hours = 1 day)</span><input id="bal-days" type="text" inputMode="decimal" value={b.opening} onChange={(e) => setB({ ...b, opening: e.target.value })} /></label>
         <div><button type="button" className="btn primary" disabled={!b.user_id || !b.leave_type_id || b.opening === ''}
           onClick={() => run(() => api('PUT', '/leave/balances', { user_id: Number(b.user_id), leave_type_id: Number(b.leave_type_id), leave_year: year, opening: Number(b.opening) }), 'Balance saved')}>Save balance</button></div>
       </div>
