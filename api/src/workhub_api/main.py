@@ -10,6 +10,7 @@ from workhub_api.delegations import router as delegations_router
 from workhub_api.edit_requests import router as edit_requests_router
 from workhub_api.hr import router as hr_router
 from workhub_api.leave import router as leave_router
+from workhub_api.org_admin import router as org_admin_router
 from workhub_api.payslips import router as payslips_router
 from workhub_api.timesheets import router as timesheets_router
 from workhub_api.users_admin import router as users_admin_router
@@ -28,6 +29,7 @@ app.include_router(approvals_router)
 app.include_router(delegations_router)
 app.include_router(hr_router)
 app.include_router(leave_router)
+app.include_router(org_admin_router)
 app.include_router(payslips_router)
 app.include_router(users_admin_router)
 
