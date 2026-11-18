@@ -1,0 +1,19 @@
+name: web-ci
+on:
+  push:
+    paths: ["web/**", ".github/workflows/web-ci.yml"]
+  pull_request:
+    paths: ["web/**"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+      - run: bun run build # type-check, then bundle

@@ -86,7 +86,7 @@ Only weeks are supported so far. Delegation and escalation come with WH-32.
 uv run python -m workhub_api.worker   # runs queued jobs; run it next to the API
 ```
 
-Jobs are rows in the `job` table (`jobs.enqueue(...)`). Failed jobs retry with a growing delay (30 s, 60 s, ... up to 5 tries), and a handler runs inside a savepoint, so a failure undoes its own changes. The worker keeps one repeating job alive, `approval_housekeeping`, every 15 minutes, which applies delegations and escalates overdue approvals.
+Jobs are rows in the `job` table (`jobs.enqueue(...)`). Failed jobs retry with a growing delay (30 s, 60 s, ... up to 5 tries), and a handler runs inside a savepoint, so a failure undoes its own changes. The worker keeps two repeating jobs alive: `approval_housekeeping` every 15 minutes (applies delegations and escalates overdue approvals) and `leave_accrual` on the 1st of each month at 00:05 UTC (see Leave). The first time the worker starts it accrues the current month straight away.
 
 ## Edit requests for locked weeks (WH-22)
 
@@ -132,7 +132,9 @@ Rules checked when you apply: only working days count (weekends and your locatio
 
 The manager decides it in the same inbox (`GET /approvals/inbox` rows have a `leave` summary). `POST /approvals/{id}/approve` deducts the balance and writes one read-only time entry (source `leave`) per day, in one transaction, and fails with 409 if the balance is gone or that week is already approved. `send-back` rejects it with a reason and changes nothing. Cancelling is refused when one of its weeks is already approved (HR has to correct that week).
 
-Not built yet: monthly accrual by the worker, year-end carry forward, comp-off, the team calendar, and the Zoho import.
+**Accrual and carry-forward** run in the worker (`leave_accrual.py`, job `leave_accrual`). Each month everyone who is employed that month gets each type's `accrual_per_month` (a joiner or leaver gets a full month, not a pro-rated one). When a new leave year starts, last year's unused leave carries into the new year's `opening`, up to the type's `carry_forward_cap` (nothing carries for a type with no cap or a negative balance). The job may run twice, so every credit is written once to `leave_credit` and a repeat changes nothing; hours HR set by hand stay, and the credit is added on top. Each credit is audited with no actor. To backfill one month, queue the job with `{"month": "2026-11"}` (that one does not repeat).
+
+Not built yet: comp-off, the team calendar, the monthly LWP export, and the Zoho import.
 
 ## Payslips (WH-50, WH-51)
 

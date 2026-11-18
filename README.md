@@ -53,7 +53,29 @@ Browser ──► web/ (React, Bun)  ──HTTPS/JSON──►  api/ (FastAPI)  
 - **Shared database note:** the Azure database also holds another module's tables (`users`, `employees`, `roles`, `organizations` and more, with their own `people_alembic_version`). Our Alembic ignores tables that are not in our models (`migrations/env.py`), so it never drops them. Check with the team how our `app_user`, `team` and `holiday` tables relate to their `users`, `teams` and `holidays`.
 - Speed note: the shared Azure database answers in about 250 ms per round trip from a laptop, so each API call takes 1 to 5 seconds in development. That is distance, not code. In the same Azure region it should take a few milliseconds. Keep the API and the database in one region when deploying.
 
-Run it: see `api/README.md`.
+## Run it
+
+Backend first (full details in `api/README.md`):
+
+```bash
+cd api
+cp .env.example .env                           # point at local Docker or Azure Postgres
+docker compose up -d db minio                  # skip db if .env points at Azure
+uv sync
+uv run alembic upgrade head
+uv run python -m workhub_api.seed              # optional sample data; sign in as jim@example.com / workhub-dev-1
+uv run uvicorn workhub_api.main:app --reload   # http://localhost:8000 (docs at /docs)
+uv run python -m workhub_api.worker            # optional, in a second terminal
+```
+
+Then the frontend:
+
+```bash
+cd web
+bun install
+bun run dev                                    # http://localhost:5173
+bun run gen:api                                # after API changes: regenerate src/api-types.ts from openapi.json
+```
 
 ## What is next (backend lane, Jim)
 
