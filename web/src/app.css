@@ -65,7 +65,7 @@ svg.i { width: 18px; height: 18px; flex: none; stroke: currentColor; fill: none;
 
 /* shell */
 .app { min-height: 100vh; padding: 16px; display: grid; grid-template-rows: auto 1fr; gap: 16px; }
-.topbar { display: flex; align-items: center; gap: 14px; padding: 10px 18px; border-radius: 20px; }
+.topbar { position: relative; z-index: 30; display: flex; align-items: center; gap: 14px; padding: 10px 18px; border-radius: 20px; }
 .logo { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 17px; letter-spacing: -0.02em; }
 .logo i { width: 30px; height: 30px; border-radius: 10px; background: var(--accent); display: grid; place-items: center; box-shadow: 0 6px 14px -6px var(--accent); }
 .logo i::after { content: ""; width: 12px; height: 12px; border: 2px solid var(--accent-ink); border-radius: 50%; border-right-color: transparent; transform: rotate(30deg); }
