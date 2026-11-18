@@ -52,7 +52,7 @@ function TimeCorrections() {
       {msg && <Banner kind={msg.kind}>{msg.text}</Banner>}
       <div className="grid3">
         <label className="field"><span>Employee (user id)</span><input id="hr-user" type="text" inputMode="numeric" value={userId} onChange={(e) => setUserId(e.target.value)} /></label>
-        <label className="field"><span>Week starting (Monday)</span><input id="hr-week" type="date" value={week} onChange={(e) => setWeek(mondayOf(new Date(e.target.value + 'T00:00')))} /></label>
+        <label className="field"><span>Week starting (Monday)</span><input id="hr-week" type="date" value={week} onChange={(e) => e.target.value && setWeek(mondayOf(new Date(e.target.value + 'T00:00')))} /></label>
       </div>
       <label className="field"><span>Reason (kept in the audit log, the employee sees it)</span><textarea id="hr-reason" value={reason} onChange={(e) => setReason(e.target.value)} /></label>
       <div className="grid3">
